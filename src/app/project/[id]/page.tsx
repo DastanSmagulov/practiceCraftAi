@@ -24,9 +24,7 @@ const Project: React.FC<ProjectProps> = ({ params: { id } }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/api/getProjects"
-        );
+        const response = await axios.get("/api/getProjects");
         const projectData = response.data[parseInt(id) - 1];
         setProject(projectData);
       } catch (error) {
