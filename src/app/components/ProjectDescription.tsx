@@ -1,44 +1,136 @@
-const ProjectDescription = () => {
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { faCircle } from "@fortawesome/free-regular-svg-icons";
+import React, { useState, useEffect } from "react";
+
+const ProjectDescription = ({ project }: any) => {
+  const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(
+    () => {
+      const saved = localStorage.getItem("checkedItems");
+      return saved ? JSON.parse(saved) : {};
+    }
+  );
+
+  useEffect(() => {
+    localStorage.setItem("checkedItems", JSON.stringify(checkedItems));
+  }, [checkedItems]);
+
+  const handleCheck = (item: string) => {
+    setCheckedItems((prevState) => ({
+      ...prevState,
+      [item]: !prevState[item],
+    }));
+  };
+
   return (
-    <div className="container w-[80%] py-8">
-      <h1 className="text-2xl font-bold mb-4">
-        1382. Balance a Binary Search Tree
-      </h1>
-      <div className="mb-6">
-        <span className="bg-yellow-500 text-white py-1 px-3 rounded-full text-sm font-semibold mr-2">
-          Medium
+    <div className="container w-full md:w-[80%] py-8">
+      <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.name}</h1>
+      <div className="flex flex-wrap items-center mb-6">
+        <span
+          className={`py-1 px-3 rounded-full text-sm font-semibold mr-2 mb-2 ${
+            project.difficulty === "easy"
+              ? "bg-green-500"
+              : project.difficulty === "medium"
+              ? "bg-yellow-500"
+              : "bg-red-500"
+          } text-white flex items-center`}
+        >
+          {project.difficulty.charAt(0).toUpperCase() +
+            project.difficulty.slice(1)}
         </span>
-        <span className="bg-gray-200 text-gray-800 py-1 px-3 rounded-full text-sm font-semibold mr-2">
-          Topics
-        </span>
-        <span className="bg-gray-200 text-gray-800 py-1 px-3 rounded-full text-sm font-semibold">
-          Discuss project
+        <span className="bg-gray-200 text-gray-800 py-1 px-3 rounded-full text-sm font-semibold mr-2 mb-2 whitespace-nowrap">
+          {project.topics}
         </span>
       </div>
       <p className="mb-4">
-        Given the <code>root</code> of a binary search tree, return a{" "}
-        <strong>balanced binary search tree</strong> with the same node values.
-        If there is more than one answer, return <em>any of them</em>.
+        <strong>Technical Assignment:</strong> {project["technical assignment"]}
       </p>
       <p className="mb-4">
-        A binary search tree is <strong>balanced</strong> if the depth of the
-        two subtrees of every node never differs by more than <strong>1</strong>
-        .
+        <strong>Backend API:</strong>{" "}
+        <a
+          href={project["backend api"]}
+          className="text-blue-500"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {project["backend api"]}
+        </a>
       </p>
-      <h2 className="text-xl font-semibold mb-2">Example 1:</h2>
+      <p className="mb-4">
+        <strong>Design Inspiration:</strong>{" "}
+        <a
+          href="https://dribbble.com/following"
+          className="text-blue-500 mr-1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Dribble
+        </a>{" "}
+        <a
+          href="https://www.behance.net"
+          className="text-blue-500"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Behance
+        </a>
+      </p>
       <div className="mb-4">
-        <img src="/example1.png" alt="Example 1" className="mb-2" />
-        <p>
-          <strong>Input:</strong> root = [1,null,2,null,3,null,4,null,null]
-        </p>
-        <p>
-          <strong>Output:</strong> [2,1,3,null,null,null,4]
-        </p>
-        <p>
-          <strong>Explanation:</strong> This is not the only correct answer,
-          [3,1,4,null,2] is also correct.
-        </p>
+        <h2 className="text-xl font-semibold mb-2">Project Requirements:</h2>
+        <ul className="list-disc list-inside space-y-1">
+          <h1 className="text-[#cd7f32]">Bronze:</h1>
+          <li
+            className="flex items-center cursor-pointer"
+            onClick={() => handleCheck("bronze")}
+          >
+            <FontAwesomeIcon
+              icon={checkedItems["bronze"] ? faCheckCircle : faCircle}
+              className="text-gray-400 mr-2"
+            />
+            <span>{project.requirements.bronze}</span>
+          </li>
+          <h1 className="text-[#c0c0c0]">Silver:</h1>
+          <li
+            className="flex items-center cursor-pointer"
+            onClick={() => handleCheck("silver")}
+          >
+            <FontAwesomeIcon
+              icon={checkedItems["silver"] ? faCheckCircle : faCircle}
+              className="text-gray-400 mr-2"
+            />
+            <span>{project.requirements.silver}</span>
+          </li>
+          <h1 className="text-[#FFDF00]">Gold:</h1>
+          <li
+            className="flex items-center cursor-pointer"
+            onClick={() => handleCheck("gold")}
+          >
+            <FontAwesomeIcon
+              icon={checkedItems["gold"] ? faCheckCircle : faCircle}
+              className="text-gray-400 mr-2"
+            />
+            <span>{project.requirements.gold}</span>
+          </li>
+        </ul>
       </div>
+      <h2 className="text-xl font-semibold mb-2">Stack:</h2>
+      <p className="mb-4">{project.stack}</p>
+      <h2 className="text-xl font-semibold mb-2">Tasks:</h2>
+      <ul className="list-disc list-inside space-y-1">
+        {project.tasks.map((task: any, index: number) => (
+          <li
+            key={index}
+            className="flex items-center cursor-pointer"
+            onClick={() => handleCheck(`task-${index}`)}
+          >
+            <FontAwesomeIcon
+              icon={checkedItems[`task-${index}`] ? faCheckCircle : faCircle}
+              className="text-gray-400 mr-2"
+            />
+            <span>{task}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

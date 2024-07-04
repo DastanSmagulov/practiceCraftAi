@@ -9,6 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-regular-svg-icons": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "dotenv": "^16.4.5",
     "firebase": "^10.12.2",
     "fs": "^0.0.1-security",
@@ -17,6 +21,7 @@
     "react": "^18",
     "react-cool-dimensions": "^3.0.1",
     "react-dom": "^18",
+    "react-toastify": "^10.0.5",
     "typewriter-effect": "^2.21.0"
   },
   "devDependencies": {
