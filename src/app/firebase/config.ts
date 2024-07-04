@@ -19,6 +19,4 @@ const provider = new GithubAuthProvider();
 
 const db = getFirestore(firebase_app);
 
-// export default firebase_app;
-
 export { firebase_app, db, auth, provider };

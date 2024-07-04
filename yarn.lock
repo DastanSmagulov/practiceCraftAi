@@ -1439,12 +1439,7 @@ raf@^3.4.1:
   integrity sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
   dependencies:
     performance-now "^2.1.0"
-
-react-cool-dimensions@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/react-cool-dimensions/-/react-cool-dimensions-3.0.1.tgz"
-  integrity sha512-DUsDB5WUN1Qh6fJJlBtqFKCktrZCPRYcVn8NTeM6hP/5AhZNjDOa2sC2Dg0EM3WUObPDNV5nFLA34vHQfahUeg==
-
+    
 "react-dom@^17.x || ^18.x", react-dom@^18, react-dom@^18.2.0, react-dom@>=18:
   version "18.3.1"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz"

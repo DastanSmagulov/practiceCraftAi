@@ -5,8 +5,21 @@ import SubmitProject from "@/app/components/SubmitProject";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const Project = ({ params: { id } }) => {
-  const [project, setProject] = useState(null);
+interface Project {
+  name: string;
+  stack: string;
+  topics: string;
+  difficulty: string;
+}
+
+interface ProjectProps {
+  params: {
+    id: string;
+  };
+}
+
+const Project: React.FC<ProjectProps> = ({ params: { id } }) => {
+  const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -14,7 +27,7 @@ const Project = ({ params: { id } }) => {
         const response = await axios.get(
           "http://localhost:3000/api/getProjects"
         );
-        const projectData = response.data[id - 1];
+        const projectData = response.data[parseInt(id) - 1];
         setProject(projectData);
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -22,7 +35,7 @@ const Project = ({ params: { id } }) => {
     };
 
     fetchData();
-  }, [id]); // Ensure useEffect re-runs when id changes
+  }, [id]);
 
   if (!project) {
     return (

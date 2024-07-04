@@ -1,11 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import Link from "next/link";
 import axios from "axios";
 
+interface Project {
+  name: string;
+  stack: string;
+  topics: string;
+  difficulty: string;
+}
+
 const ProjectsTable = () => {
-  const [projects, setProjects] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
 
   const fetchData = async () => {
     try {
@@ -24,7 +31,7 @@ const ProjectsTable = () => {
     setFilteredProjects(projects); // Initialize filtered projects with all projects on initial load
   }, [projects]);
 
-  const handleSearch = (event: any) => {
+  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
