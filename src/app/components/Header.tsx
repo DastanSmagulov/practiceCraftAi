@@ -84,7 +84,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               </li>
               <li>
                 <Link
-                  href={"/create"}
+                  href={"/createProject"}
                   className={`text-base font-bold ${
                     props.active === "create" ? "underline" : ""
                   }`}
@@ -154,7 +154,7 @@ const Header: React.FC<{ active: string }> = (props) => {
           </li>
           <li>
             <Link
-              href={"/create"}
+              href={"/createProject"}
               className={`text-base font-bold ${
                 props.active === "create" ? "underline" : ""
               }`}

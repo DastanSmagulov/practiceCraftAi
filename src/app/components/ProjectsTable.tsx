@@ -17,7 +17,13 @@ const ProjectsTable = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get("/api/getProjects");
-      setProjects(response.data);
+      const projectsObject = response.data;
+
+      // Transform object to array
+      const projectsArray = Object.values(projectsObject);
+
+      setProjects(projectsArray);
+      console.log(projectsArray);
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
@@ -36,13 +42,15 @@ const ProjectsTable = () => {
   };
 
   useEffect(() => {
-    const results = projects.filter(
-      (project) =>
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.stack.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.topics.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProjects(results);
+    if (projects) {
+      const results = projects.filter(
+        (project) =>
+          project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          project.stack.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          project.topics.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProjects(results);
+    }
   }, [searchTerm, projects]);
 
   return (

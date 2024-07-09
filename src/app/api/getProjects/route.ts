@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ref, get } from "firebase/database";
+import { realtimeDB } from "../../firebase/config"; // Adjust the import path as necessary
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(
-      "https://practicecraftai-default-rtdb.firebaseio.com/projects.json"
-    );
+    const dbRef = ref(realtimeDB, "projects");
+    const snapshot = await get(dbRef);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!snapshot.exists()) {
+      throw new Error("No data available");
     }
 
-    const projects = await response.json();
-
+    const projects = snapshot.val();
     return NextResponse.json(projects, { status: 200 });
   } catch (error) {
     console.error("Error fetching projects:", error);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_GITHUB_API_KEY, // Replace with your actual API key
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // Replace with your actual API key
 });
 
 export async function POST(request: any) {
