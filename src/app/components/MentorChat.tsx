@@ -76,7 +76,7 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
   };
 
   return (
-    <div className="h-[70vh] min-w-[40vw] flex items-center justify-center text-white">
+    <div className="min-w-[40vw] py-8 mb-10 max-[350px]:mb-28 max-[350px]:mt-28 flex items-center max-sm:mb-16 justify-center text-white">
       <div className="w-full max-w-3xl bg-gray-900 rounded-lg shadow-lg p-4">
         <div
           className="flex flex-col h-96 overflow-y-auto mb-4 space-y-4"
@@ -90,9 +90,9 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
               }`}
             >
               <div
-                className={`inline-block p-3 rounded-lg ${
+                className={`inline-block p-3 rounded-lg max-w-[75%] ${
                   message.sender === "user" ? "bg-blue-500" : "bg-gray-800"
-                } shadow-sm whitespace-pre-wrap`}
+                } shadow-sm whitespace-pre-wrap break-words`}
               >
                 <span className="text-lg">{message.text}</span>
               </div>
@@ -100,7 +100,7 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
           ))}
           {currentMentorMessage && (
             <div className="mb-2 text-left">
-              <div className="inline-block p-3 rounded-lg bg-gray-800 shadow-sm whitespace-pre-wrap">
+              <div className="inline-block p-3 rounded-lg bg-gray-800 shadow-sm whitespace-pre-wrap break-words max-w-[75%]">
                 <span className="text-lg">{currentMentorMessage}</span>
               </div>
             </div>
@@ -111,17 +111,17 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
             </div>
           )}
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center max-md:flex-col max-md:gap-5">
           <input
             type="text"
-            className="flex-1 p-4 bg-gray-700 rounded-l-lg focus:outline-none border-none placeholder-gray-400"
+            className="flex-1 p-4 bg-gray-700 md:rounded-l-lg max-md:w-full max-md:text-center focus:outline-none border-none placeholder-gray-400"
             placeholder="Ask mentor anything"
             value={input}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
           />
           <button
-            className="p-4 bg-orange-500 text-white rounded-r-lg hover:bg-orange-600 transition duration-300"
+            className="p-4 bg-orange-500 text-white max-md:w-full md:rounded-r-lg hover:bg-orange-600 transition duration-300"
             onClick={handleSend}
           >
             Send

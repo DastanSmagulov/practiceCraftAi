@@ -4,6 +4,7 @@ import ProjectDescription from "@/app/components/ProjectDescription";
 import SubmitProject from "@/app/components/SubmitProject";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Project {
   name: string;
@@ -20,25 +21,35 @@ interface ProjectProps {
 
 const Project: React.FC<ProjectProps> = ({ params: { id } }) => {
   const [project, setProject] = useState<Project | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("/api/getProjects");
-        const projectData = response.data[parseInt(id) - 1];
-        setProject(projectData);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const { uid } = JSON.parse(storedUser);
+      console.log(uid, id);
+      fetchData(uid, id);
+    } else {
+      router.push("/login");
+    }
+  }, [id, router]);
 
-    fetchData();
-  }, [id]);
+  const fetchData = async (userId: string, projectId: string) => {
+    try {
+      console.log(userId, projectId);
+      const response = await axios.get("/api/getUserProjectsById", {
+        params: { userId, projectId },
+      });
+      setProject(response.data);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+    }
+  };
 
   if (!project) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        Loading...
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }

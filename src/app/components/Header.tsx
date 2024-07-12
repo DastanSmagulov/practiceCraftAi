@@ -2,10 +2,13 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { auth } from "../firebase/config";
+import { useRouter } from "next/navigation";
+import { setPersistence, browserSessionPersistence } from "firebase/auth";
 
 const Header: React.FC<{ active: string }> = (props) => {
   const [user, setUser] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -19,10 +22,26 @@ const Header: React.FC<{ active: string }> = (props) => {
   };
 
   const handleSignOut = () => {
-    auth.signOut().then(() => {
-      setUser(null);
-      localStorage.removeItem("user");
-    });
+    auth
+      .signOut()
+      .then(() => {
+        setUser(null);
+        localStorage.removeItem("user");
+        router.push("/login");
+
+        // Clear persistent state after signing out
+        setPersistence(auth, browserSessionPersistence)
+          .then(() => {
+            console.log("Persistent state cleared successfully");
+          })
+          .catch((error) => {
+            console.error("Error clearing persistent state: ", error);
+          });
+      })
+      .catch((error) => {
+        console.error("Error signing out: ", error);
+        alert("Error signing out. Please try again.");
+      });
   };
 
   return (

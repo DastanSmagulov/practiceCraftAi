@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "../context/AuthContext";
 
@@ -10,6 +10,14 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
   const router = useRouter();
   const [githubLink, setGithubLink] = useState<string>("");
   const [githubToken, setGithubToken] = useState<string>("");
+
+  useEffect(() => {
+    // Retrieve stored values from localStorage when the component mounts
+    const storedGithubToken = localStorage.getItem("githubToken");
+    if (storedGithubToken) {
+      setGithubToken(storedGithubToken);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGithubLink(e.target.value);
@@ -23,7 +31,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
     if (user) {
       localStorage.setItem("project", JSON.stringify(project));
       localStorage.setItem("githubLink", githubLink);
-      localStorage.setItem("githubToken", githubToken);
+      localStorage.setItem("githubToken", githubToken); // Save the PAT to localStorage
       router.push(`/feedback/${id}`);
     } else {
       router.push("/login");
@@ -32,7 +40,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
 
   return (
     <div className="flex flex-col items-center gap-3 p-8 bg-gray-900 text-white rounded-md shadow-md max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-2">
+      <h2 className="text-2xl font-bold mb-2 text-center">
         Submit Your Project for Feedback
       </h2>
       <p className="text-lg mb-3 text-center">

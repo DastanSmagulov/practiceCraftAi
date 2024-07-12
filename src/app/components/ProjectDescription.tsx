@@ -52,6 +52,13 @@ const ProjectDescription = ({ project }: any) => {
           className="text-blue-500"
           target="_blank"
           rel="noopener noreferrer"
+          style={{
+            display: "inline-block",
+            width: "80vw",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
         >
           {project["backend api"]}
         </a>

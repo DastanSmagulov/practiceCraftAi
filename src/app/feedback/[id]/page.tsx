@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { db } from "../../firebase/config";
+import { doc, updateDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 const greptileApiKey = process.env.NEXT_PUBLIC_GREPTILE_API;
 
@@ -14,11 +17,20 @@ const FeedBack: React.FC = () => {
   const [indexingLoading, setIndexingLoading] = useState<boolean>(true);
   const [feedbackReceived, setFeedbackReceived] = useState<boolean>(false);
 
+  const router = useRouter();
+
   useEffect(() => {
     const storedGithubToken = localStorage.getItem("githubToken");
+    const storedUser = localStorage.getItem("user");
+    const storedUserId = localStorage.getItem("userId");
     if (storedGithubToken) {
       setGithubToken(storedGithubToken);
     }
+    if (!storedUser) {
+      router.push("/login"); // Redirect to login if user is null
+      return;
+    }
+
     const storedProject = localStorage.getItem("project");
     const storedGithubLink = localStorage.getItem("githubLink");
 
@@ -29,7 +41,7 @@ const FeedBack: React.FC = () => {
     if (storedGithubLink) {
       setGithubLink(storedGithubLink);
     }
-  }, []);
+  }, [router]);
 
   const extractRepoDetails = (url: string) => {
     const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
@@ -152,7 +164,7 @@ const FeedBack: React.FC = () => {
         }
         return response.json();
       })
-      .then((data) => {
+      .then(async (data) => {
         const feedbackString = data.message.match(
           /```json\n([\s\S]*?)\n```/
         )[1];
@@ -160,6 +172,40 @@ const FeedBack: React.FC = () => {
 
         setFeedback(feedbackJson.feedback);
         setFeedbackReceived(true);
+
+        // Check if the overall grade is above 70%
+        const overallGradeString =
+          feedbackJson.feedback[0]?.grade?.overall?.grade;
+        console.log(overallGradeString);
+        if (overallGradeString) {
+          // Extract numeric grade
+          let numericGradeString = overallGradeString.trim();
+          if (numericGradeString.endsWith("%")) {
+            numericGradeString = numericGradeString.slice(0, -1); // Remove '%' if present
+          }
+          const numericGrade = parseFloat(numericGradeString);
+
+          if (!isNaN(numericGrade) && numericGrade > 70) {
+            const projectRef = doc(
+              db,
+              "projects",
+              "users",
+              "3Se9Nnj0zodGiXwFaoZS2IqniIm2",
+              "1"
+            );
+            await updateDoc(projectRef, {
+              done: true,
+            });
+            console.log("after", projectRef);
+            toast.success("Project submitted and marked as done!");
+          } else {
+            toast.info(
+              "Project submitted but not marked as done due to low grade."
+            );
+          }
+        } else {
+          throw new Error("Invalid overall grade format received.");
+        }
       })
       .catch((error) => {
         console.error("Error submitting query:", error);
@@ -171,67 +217,101 @@ const FeedBack: React.FC = () => {
   };
 
   return (
-    <div className="overflow-x-auto w-[80vw] mx-auto my-20">
+    <div className="min-h-[91vh] bg-[#181818] text-white p-8 flex flex-col items-center justify-center">
+      <header className="w-full max-w-3xl bg-gray-800 p-4 rounded-lg mb-6">
+        <h1 className="text-3xl font-bold text-center">Project Feedback</h1>
+      </header>
       <ToastContainer />
-      <h1 className="mb-4 text-2xl font-bold text-white">Project Feedback</h1>
       {indexingLoading ? (
-        <p>Indexing is in progress...</p>
-      ) : feedback?.length > 0 ? (
-        feedback?.map((item: any, index: number) => (
-          <div
-            key={index}
-            className="mb-6 p-6 border rounded-lg shadow-md bg-white"
+        <div className="text-center">
+          <div className="text-lg font-bold mb-4">Indexing in Progress...</div>
+          <div className="loader mb-4"></div>
+          <p className="text-sm text-gray-400">
+            Please wait while we index your repository. This may take a few
+            moments.
+          </p>
+        </div>
+      ) : loading ? (
+        <div className="text-lg font-bold mb-2">Generating feedback...</div>
+      ) : feedbackReceived ? (
+        <div className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-3xl">
+          {feedback.map((item: any, index: number) => (
+            <div
+              key={index}
+              className="mb-6 p-6 border rounded-lg shadow-md bg-white"
+            >
+              <h2 className="text-xl font-semibold mb-2 text-gray-800">
+                Feedback by Criteria
+              </h2>
+              <p className="mb-4 text-gray-700">{item.feedback_by_criteria}</p>
+              <h2 className="text-xl font-semibold mb-2 text-gray-800">
+                Grade
+              </h2>
+              <div className="mb-4">
+                <ul className="list-disc pl-5 text-gray-700">
+                  <li>
+                    <span className="font-bold">Bronze:</span>{" "}
+                    {item.grade.bronze.grade} / 100
+                    <p className="text-gray-600">
+                      {item.grade.bronze.explanation}
+                    </p>
+                  </li>
+                  <li>
+                    <span className="font-bold">Silver:</span>{" "}
+                    {item.grade.silver.grade} / 100
+                    <p className="text-gray-600">
+                      {item.grade.silver.explanation}
+                    </p>
+                  </li>
+                  <li>
+                    <span className="font-bold">Gold:</span>{" "}
+                    {item.grade.gold.grade} / 100
+                    <p className="text-gray-600">
+                      {item.grade.gold.explanation}
+                    </p>
+                  </li>
+                  <li className="mt-4 font-bold">
+                    Overall Grade: {item.grade.overall.grade} / 100
+                    <p className="text-gray-600">
+                      {item.grade.overall.explanation}
+                    </p>
+                  </li>
+                </ul>
+              </div>
+              <h2 className="text-xl font-semibold mb-2 text-gray-800">
+                Recommendations
+              </h2>
+              <div className="text-gray-700">
+                {item.recommendations
+                  .split("\n")
+                  .map((line: string, idx: number) => (
+                    <p key={idx} className="mb-2">
+                      {line}
+                    </p>
+                  ))}
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={() => router.push("/projects")}
+            className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
           >
-            <h2 className="text-xl font-semibold mb-2 text-gray-800">
-              Feedback by Criteria
-            </h2>
-            <p className="mb-4 text-gray-700">{item.feedback_by_criteria}</p>
-            <h2 className="text-xl font-semibold mb-2 text-gray-800">Grade</h2>
-            <div className="mb-4">
-              <ul className="list-disc pl-5 text-gray-700">
-                <li>Bronze: {item.grade.bronze.grade} / 100</li>
-                <li>{item.grade.bronze.explanation}</li>
-                <li>Silver: {item.grade.silver.grade} / 100</li>
-                <li>{item.grade.silver.explanation}</li>
-                <li>Gold: {item.grade.gold.grade} / 100</li>
-                <li>{item.grade.gold.explanation}</li>
-                <li className="mt-4 font-bold">
-                  Overall Grade: {item.grade.overall.grade} / 100
-                </li>
-                <li className="mt-1 text-sm text-gray-600">
-                  {item.grade.overall.explanation}
-                </li>
-              </ul>
-            </div>
-            <h2 className="text-xl font-semibold mb-2 text-gray-800">
-              Recommendations
-            </h2>
-            <div className="text-gray-700">
-              {item.recommendations
-                .split("\n")
-                .map((line: string, idx: number) => (
-                  <p key={idx} className="mb-2">
-                    {line}
-                  </p>
-                ))}
-            </div>
-          </div>
-        ))
-      ) : indexingLoading ? (
-        <p>No feedback available. Indexing is in progress...</p>
+            Go to Projects
+          </button>
+        </div>
       ) : (
-        <p>Indexing complete. You can now receive feedback for your project.</p>
-      )}
-      <div className="mt-4 flex justify-end space-x-4">
-        {!feedbackReceived && (
+        <div className="flex flex-col items-center">
+          <h2 className="text-2xl font-bold mb-2 text-center">
+            Click to get your feedback
+          </h2>
           <button
             onClick={submit}
-            className="bg-orange-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-semibold"
+            className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-2"
           >
-            {loading ? "Loading..." : "Receive Feedback"}
+            Get Feedback
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

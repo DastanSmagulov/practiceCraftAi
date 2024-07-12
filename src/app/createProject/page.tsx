@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
@@ -11,19 +12,47 @@ const CreateProject = () => {
     preferences: "",
   });
 
-  const [generatedProject, setGeneratedProject] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null); // Assuming user data includes `uid`
+  const router = useRouter();
 
-  const handleChange = (e: any) => {
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+    }
+  }, []);
+
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/createProject", { formData });
-      setGeneratedProject(response.data);
+      if (!user) {
+        console.error("User data not found in localStorage");
+        return;
+      }
+
+      setLoading(true);
+
+      const { uid } = user;
+
+      const response = await axios.post(`/api/createProject?userId=${uid}`, {
+        formData,
+      });
+
+      const { newProjectId } = response.data;
+      if (newProjectId) {
+        router.push(`/project/${newProjectId}`);
+      }
+
+      setLoading(false);
     } catch (error) {
       console.error("Error generating project:", error);
+      setLoading(false);
     }
   };
 
@@ -93,18 +122,11 @@ const CreateProject = () => {
         <button
           type="submit"
           className="w-full py-3 bg-orange-500 text-white font-bold rounded-md shadow-md hover:bg-orange-600 transition duration-300"
+          disabled={loading}
         >
-          Generate Project
+          {loading ? "Generating Project..." : "Generate Project"}
         </button>
       </form>
-      {generatedProject && (
-        <div className="mt-6 bg-gray-900 p-4 rounded-md shadow-md">
-          <h2 className="text-2xl font-bold mb-4">Generated Project</h2>
-          <pre className="whitespace-pre-wrap">
-            {JSON.stringify(generatedProject, null, 2)}
-          </pre>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,22 +1,7 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
-import { getDatabase, ref, set, get } from "firebase/database";
-import { initializeApp, getApps, getApp } from "firebase/app";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-// Initialize Firebase
-const firebaseApp = !getApps().length
-  ? initializeApp(firebaseConfig)
-  : getApp();
+import { db, firebase_app as firebaseApp } from "../../firebase/config";
+import { addDoc, collection } from "firebase/firestore";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY as string,
@@ -31,6 +16,8 @@ interface FormData {
 }
 
 export async function POST(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("userId");
   try {
     const { formData }: { formData: FormData } = await request.json();
 
@@ -103,16 +90,20 @@ Generate a project:
       console.log("Project to be added to Realtime Database:", project);
 
       try {
-        const database = getDatabase(firebaseApp);
-        const projectRef = ref(database, `projects/${new Date().getTime()}`);
-        await set(projectRef, project);
-        console.log("Project successfully written to Realtime Database");
+        const docRef = await addDoc(
+          collection(db, `projects/users/${userId}`),
+          {
+            ...project,
+            done: false,
+          }
+        );
 
-        // Fetch the updated list of projects
-        const snapshot = await get(ref(database, "projects"));
-        const projects = snapshot.val();
+        console.log(
+          "Project successfully written to Firestore with ID:",
+          docRef.id
+        );
 
-        return NextResponse.json({ projects, newProjectId: projectRef.key });
+        return NextResponse.json({ newProjectId: docRef.id });
       } catch (databaseError: any) {
         console.error(
           "Failed to add document to Realtime Database:",
