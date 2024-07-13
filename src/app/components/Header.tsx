@@ -27,7 +27,7 @@ const Header: React.FC<{ active: string }> = (props) => {
       .then(() => {
         setUser(null);
         localStorage.removeItem("user");
-        router.push("/login");
+        router.push("/");
 
         // Clear persistent state after signing out
         setPersistence(auth, browserSessionPersistence)
@@ -93,7 +93,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               </li>
               <li>
                 <Link
-                  href={"/discuss"}
+                  href={"https://discord.gg/9GPQEDht"}
                   className={`text-base font-bold ${
                     props.active === "discuss" ? "underline" : ""
                   }`}
@@ -113,7 +113,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               </li>
             </ul>
           </div>
-          <div className="md:pr-20 max-sm:hidden relative">
+          <div className="md:pr-20 relative">
             {user ? (
               <div className="relative">
                 <button
@@ -163,7 +163,7 @@ const Header: React.FC<{ active: string }> = (props) => {
           </li>
           <li>
             <Link
-              href={"/discuss"}
+              href={"https://discord.gg/9GPQEDht"}
               className={`text-base font-bold ${
                 props.active === "discuss" ? "underline" : ""
               }`}

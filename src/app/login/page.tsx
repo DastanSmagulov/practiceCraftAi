@@ -97,21 +97,38 @@ function Login() {
       className="wrapper flex items-center justify-center h-screen bg-cover bg-center"
       style={{ backgroundImage: "url('/path/to/your/background.jpg')" }}
     >
-      <div className="box text-center bg-white p-8 rounded-lg shadow-lg max-w-sm">
+      <div className="box text-center bg-white p-10 rounded-lg shadow-lg max-w-sm">
         {user ? (
           <>
-            <h1 className="text-2xl font-bold text-green-500">
-              Login successful
+            <h1 className="text-3xl font-bold text-green-600 mb-4">
+              Welcome, {user.displayName}!
             </h1>
-            <button onClick={handleSignOut}>Sign Out</button>
+            <img
+              src={user.photoURL}
+              alt="User Avatar"
+              className="w-20 h-20 rounded-full mx-auto mb-4"
+            />
+            <p className="text-lg text-gray-700 mb-6">
+              You are now signed in. Enjoy using our platform!
+            </p>
+            <button
+              className="bg-red-500 text-white px-6 py-2 rounded-full shadow-md hover:bg-red-600 transition duration-300 font-bold"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </button>
           </>
         ) : (
           <>
-            <p className="mb-6 text-2xl text-gray-800 font-semibold">
-              Sign up to access all the functionality
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Sign in to Your Account
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Sign up to access all the functionality and start your journey
+              with us.
             </p>
             <button
-              className="flex items-center justify-center bg-orange-500 text-white px-6 py-3 text-lg rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold w-full"
+              className="flex items-center justify-center bg-orange-500 text-white px-6 py-3 text-lg rounded-full shadow-md hover:bg-blue-700 transition duration-300 font-bold w-full"
               onClick={handleGithubLogin}
               disabled={loading}
             >

@@ -27,48 +27,61 @@ const ProjectsTable = () => {
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [sortDifficulty, setSortDifficulty] = useState<string | null>(null);
   const [sortStatus, setSortStatus] = useState<string | null>(null);
+  const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
 
   useEffect(() => {
+    const fetchProjects = async (userId: string) => {
+      try {
+        const userProjectsResponse = await axios.get(
+          `/api/getUserProjects?userId=${userId}`
+        );
+        let projectsArray: Project[] = userProjectsResponse.data;
+
+        // Check if user projects exist
+        if (projectsArray.length === 0) {
+          // Fetch general projects if user projects don't exist
+          const generalProjectsResponse = await axios.get(
+            "/api/getGeneralProjects"
+          );
+          projectsArray = generalProjectsResponse.data.map((project: any) => ({
+            ...project,
+            done: false,
+          }));
+
+          // Add general projects to user's projects collection
+          for (const project of projectsArray) {
+            await addUserProject(userId, project);
+          }
+        }
+
+        setProjects(projectsArray);
+        setFilteredProjects(projectsArray); // Initially set filtered projects to all projects
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      } finally {
+        setUserLoaded(true); // Set user data loaded flag to true
+      }
+    };
+
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const { uid } = JSON.parse(storedUser);
-      fetchData(uid);
-      addUserProjects(uid).catch(console.error); // Add user projects if not already added
+      fetchProjects(uid); // Fetch projects when user data is available
     }
   }, []);
 
-  const fetchData = async (userId: string) => {
-    try {
-      const userProjectsResponse = await axios.get(
-        `/api/getUserProjects?userId=${userId}`
-      );
-      let projectsArray: Project[] = userProjectsResponse.data;
-
-      // Check if user projects exist
-      if (projectsArray.length === 0) {
-        const generalProjectsResponse = await axios.get("/api/getProjects");
-        projectsArray = generalProjectsResponse.data.map((project: any) => ({
-          ...project,
-          done: false,
-        }));
-      }
-
-      setProjects(projectsArray);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    }
+  const addUserProject = async (userId: string, project: Project) => {
+    const userProjectsRef = collection(db, `projects/users/${userId}`);
+    const docRef = doc(userProjectsRef, String(project.id));
+    await setDoc(docRef, project);
   };
-
-  useEffect(() => {
-    setFilteredProjects(projects);
-  }, [projects]);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
   useEffect(() => {
-    if (projects) {
+    if (projects.length > 0) {
       let results = [...projects];
 
       if (sortDifficulty) {
@@ -98,35 +111,16 @@ const ProjectsTable = () => {
     }
   }, [searchTerm, projects, sortDifficulty, sortStatus]);
 
-  async function addUserProjects(userId: string) {
-    const userProjectsRef = collection(db, `projects/users/${userId}`);
-    const userProjectsSnapshot = await getDocs(userProjectsRef);
-
-    // Check if the project already exists in the user's projects
-    const existingProjects = userProjectsSnapshot.docs.map(
-      (doc) => doc.data() as Project
+  if (!userLoaded) {
+    return (
+      <div className="flex justify-center items-center min-h-[90vh]">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
     );
-
-    for (const project of existingProjects) {
-      // Set done to false by default if not already present
-      const doneValue = project.done ?? false;
-      const userProject = { ...project, done: doneValue };
-
-      const docRef = doc(userProjectsRef, String(userProject.id));
-      await setDoc(docRef, userProject);
-    }
   }
 
-  const handleSortDifficulty = (difficulty: string) => {
-    setSortDifficulty(difficulty);
-  };
-
-  const handleSortStatus = (status: string) => {
-    setSortStatus(status);
-  };
-
   return (
-    <div className="overflow-x-auto w-[80vw] h-screen mx-auto mb-20">
+    <div className="overflow-x-auto w-[80vw] h-auto mx-auto mb-20">
       <h1 className="mb-4 text-2xl">Pet projects library</h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-2 sm:space-y-0">
         <div className="flex space-x-2">
@@ -138,7 +132,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortDifficulty === "easy" ? "active" : ""
                   }`}
-                  onClick={() => handleSortDifficulty("easy")}
+                  onClick={() => setSortDifficulty("easy")}
                 >
                   Easy
                 </button>
@@ -148,7 +142,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortDifficulty === "medium" ? "active" : ""
                   }`}
-                  onClick={() => handleSortDifficulty("medium")}
+                  onClick={() => setSortDifficulty("medium")}
                 >
                   Medium
                 </button>
@@ -158,7 +152,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortDifficulty === "hard" ? "active" : ""
                   }`}
-                  onClick={() => handleSortDifficulty("hard")}
+                  onClick={() => setSortDifficulty("hard")}
                 >
                   Hard
                 </button>
@@ -168,7 +162,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortDifficulty === "all" ? "active" : ""
                   }`}
-                  onClick={() => handleSortDifficulty("all")}
+                  onClick={() => setSortDifficulty("all")}
                 >
                   All
                 </button>
@@ -183,7 +177,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortStatus === "done" ? "active" : ""
                   }`}
-                  onClick={() => handleSortStatus("done")}
+                  onClick={() => setSortStatus("done")}
                 >
                   Done
                 </button>
@@ -193,7 +187,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortStatus === "to-do" ? "active" : ""
                   }`}
-                  onClick={() => handleSortStatus("to-do")}
+                  onClick={() => setSortStatus("to-do")}
                 >
                   To-do
                 </button>
@@ -203,7 +197,7 @@ const ProjectsTable = () => {
                   className={`menu-item ${
                     sortStatus === "all" ? "active" : ""
                   }`}
-                  onClick={() => handleSortStatus("all")}
+                  onClick={() => setSortStatus("all")}
                 >
                   All
                 </button>

@@ -16,6 +16,8 @@ const FeedBack: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [indexingLoading, setIndexingLoading] = useState<boolean>(true);
   const [feedbackReceived, setFeedbackReceived] = useState<boolean>(false);
+  const [uid, setUid] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>("");
 
   const router = useRouter();
 
@@ -36,6 +38,11 @@ const FeedBack: React.FC = () => {
 
     if (storedProject) {
       setProject(JSON.parse(storedProject));
+      setProjectId(JSON.parse(storedProject).id);
+    }
+
+    if (storedUser) {
+      setUid(JSON.parse(storedUser).uid);
     }
 
     if (storedGithubLink) {
@@ -173,15 +180,12 @@ const FeedBack: React.FC = () => {
         setFeedback(feedbackJson.feedback);
         setFeedbackReceived(true);
 
-        // Check if the overall grade is above 70%
         const overallGradeString =
-          feedbackJson.feedback[0]?.grade?.overall?.grade;
-        console.log(overallGradeString);
+          feedbackJson.feedback[0]?.grade?.overall?.grade + "";
         if (overallGradeString) {
-          // Extract numeric grade
           let numericGradeString = overallGradeString.trim();
           if (numericGradeString.endsWith("%")) {
-            numericGradeString = numericGradeString.slice(0, -1); // Remove '%' if present
+            numericGradeString = numericGradeString.slice(0, -1);
           }
           const numericGrade = parseFloat(numericGradeString);
 
@@ -190,8 +194,8 @@ const FeedBack: React.FC = () => {
               db,
               "projects",
               "users",
-              "3Se9Nnj0zodGiXwFaoZS2IqniIm2",
-              "1"
+              uid,
+              projectId + ""
             );
             await updateDoc(projectRef, {
               done: true,

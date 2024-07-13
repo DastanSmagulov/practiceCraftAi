@@ -1,13 +1,17 @@
+// pages/api/getUserProjects.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "../../firebase/config"; // Adjust the import path as necessary
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
   if (!userId) {
-    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing userId parameter" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -15,10 +19,7 @@ export async function GET(request: NextRequest) {
     const userProjectsSnapshot = await getDocs(userProjectsRef);
 
     if (userProjectsSnapshot.empty) {
-      return NextResponse.json(
-        { error: "No projects available for this user" },
-        { status: 404 }
-      );
+      return NextResponse.json([], { status: 200 });
     }
 
     const userProjects = userProjectsSnapshot.docs.map((doc) => ({
@@ -27,10 +28,10 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(userProjects, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching user projects:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user projects" },
+      { error: `Failed to fetch user projects: ${error.message}` },
       { status: 500 }
     );
   }

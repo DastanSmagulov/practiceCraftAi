@@ -4,7 +4,7 @@ import { collection, getDocs } from "firebase/firestore";
 
 export async function GET(request: NextRequest) {
   try {
-    const generalProjectsRef = collection(db, "projects/general");
+    const generalProjectsRef = collection(db, "projects", "general", "data");
     const generalProjectsSnapshot = await getDocs(generalProjectsRef);
 
     if (generalProjectsSnapshot.empty) {
@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(generalProjects, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching general projects:", error);
     return NextResponse.json(
-      { error: "Failed to fetch general projects" },
+      { error: `Failed to fetch general projects: ${error.message}` },
       { status: 500 }
     );
   }
