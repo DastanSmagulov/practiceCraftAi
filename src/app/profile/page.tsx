@@ -64,7 +64,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="bg-[#1A1A1A] min-h-[91vh] flex flex-col items-center justify-center text-white">
+    <div className="bg-[#1A1A1A] min-h-[90vh] h-auto flex flex-col items-center justify-center text-white p-4">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mb-6">
         <div className="flex items-center">
           <img
@@ -77,11 +77,8 @@ const Profile = () => {
               <h1 className="text-2xl text-gray-600 font-bold">
                 {user.displayName}
               </h1>
-              <h1 className="text-base text-gray-600 font-bold items-center">
-                Rank: 123
-              </h1>
             </div>
-            <p className="text-gray-600">{user.email}</p>
+            <p className="text-gray-600 email-text">{user.email}</p>
           </div>
         </div>
       </div>

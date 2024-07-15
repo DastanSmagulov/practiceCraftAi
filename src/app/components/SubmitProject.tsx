@@ -71,12 +71,21 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
         </button>
       </div>
       <a
-        href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token"
+        href="https://github.com/settings/tokens?type=beta"
         target="_blank"
         rel="noopener noreferrer"
         className="text-blue-400 underline text-sm block text-center mt-3"
       >
-        How to generate a PAT
+        Click here to generate a PAT.
+      </a>
+      <a
+        href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 underline text-sm block text-center"
+      >
+        Guide from github. Make sure to select the repo scope when creating the
+        token
       </a>
     </div>
   );

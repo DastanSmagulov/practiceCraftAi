@@ -28,3 +28,41 @@ details > summary {
 details > summary::-webkit-details-marker {
   display: none;
 }
+
+.overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrap {
+  white-space: normal; /* Allow text to wrap */
+  word-wrap: break-word; /* Break words if needed */
+}
+
+.drawer-side {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  transition: transform 0.3s ease-in-out;
+}
+
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.drawer-content {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.email-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

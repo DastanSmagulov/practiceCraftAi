@@ -1,5 +1,7 @@
 import { useState, useEffect, ChangeEvent, KeyboardEvent } from "react";
 import axios from "axios";
+import { db } from "../firebase/config"; // Import Firebase Firestore configuration
+import { collection, addDoc, serverTimestamp } from "firebase/firestore"; // Firestore functions
 
 type Message = {
   text: string;
@@ -23,6 +25,7 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
       }, 20); // Reduced delay for faster typing effect
     } else if (currentMentorMessage.length > 0 && isLoading) {
       // When typing is done
+      // saveMessageToFirestore(currentMentorMessage); // Save mentor message to Firestore
       setMessages((prevMessages) => [
         ...prevMessages,
         { text: currentMentorMessage, sender: "mentor" },
@@ -33,6 +36,34 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
 
     return () => clearInterval(interval);
   }, [messageQueue, currentMentorMessage, isLoading]);
+
+  // const saveMessageToFirestore = async (message: string) => {
+  //   try {
+  //     await addMentorMessageToFirestore(message);
+  //   } catch (error) {
+  //     console.error("Error saving mentor message to Firestore:", error);
+  //   }
+  // };
+
+  // const addMentorMessageToFirestore = async (message: string) => {
+  //   try {
+  //     // Define the Firestore collection reference
+  //     const messagesCollectionRef = collection(
+  //       db,
+  //       `projects/${project.id}/chat`
+  //     );
+
+  //     // Create a new document with a generated ID
+  //     await addDoc(messagesCollectionRef, {
+  //       text: message,
+  //       sender: "mentor",
+  //       timestamp: serverTimestamp(), // Ensure you have imported serverTimestamp from firebase.firestore
+  //     });
+  //   } catch (error) {
+  //     console.error("Error adding mentor message to Firestore:", error);
+  //     throw new Error("Failed to add mentor message to Firestore");
+  //   }
+  // };
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -75,6 +106,27 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
     }
   };
 
+  const parseTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) =>
+      urlRegex.test(part) ? (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 underline"
+        >
+          {part}
+        </a>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
     <div className="min-w-[40vw] py-8 mb-10 max-[350px]:mb-28 max-[350px]:mt-28 flex items-center max-sm:mb-16 justify-center text-white">
       <div className="w-full max-w-3xl bg-gray-900 rounded-lg shadow-lg p-4">
@@ -94,14 +146,20 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
                   message.sender === "user" ? "bg-blue-500" : "bg-gray-800"
                 } shadow-sm whitespace-pre-wrap break-words`}
               >
-                <span className="text-lg">{message.text}</span>
+                <span className="text-lg">
+                  {message.sender === "mentor"
+                    ? parseTextWithLinks(message.text)
+                    : message.text}
+                </span>
               </div>
             </div>
           ))}
           {currentMentorMessage && (
             <div className="mb-2 text-left">
               <div className="inline-block p-3 rounded-lg bg-gray-800 shadow-sm whitespace-pre-wrap break-words max-w-[75%]">
-                <span className="text-lg">{currentMentorMessage}</span>
+                <span className="text-lg">
+                  {parseTextWithLinks(currentMentorMessage)}
+                </span>
               </div>
             </div>
           )}

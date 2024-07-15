@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/navigation";
 import { setPersistence, browserSessionPersistence } from "firebase/auth";
@@ -25,10 +25,9 @@ const Header: React.FC<{ active: string }> = (props) => {
     auth
       .signOut()
       .then(() => {
+        router.push("/");
         setUser(null);
         localStorage.removeItem("user");
-        router.push("/");
-
         // Clear persistent state after signing out
         setPersistence(auth, browserSessionPersistence)
           .then(() => {
@@ -45,11 +44,11 @@ const Header: React.FC<{ active: string }> = (props) => {
   };
 
   return (
-    <div className="drawer">
+    <div className="drawer min-h-[10vh]">
       <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
-        <div className="navbar justify-between bg-base-300 w-full">
+        <div className="navbar min-h-[10vh] justify-between bg-base-300 w-full">
           <div className="flex-none lg:hidden">
             <label
               htmlFor="my-drawer-3"
@@ -71,20 +70,20 @@ const Header: React.FC<{ active: string }> = (props) => {
               </svg>
             </label>
           </div>
-          <div className="mx-2 pl-20">
+          <div className="mx-2 lg:pl-20">
             <Link
               href={"/"}
-              className="text-lg max-sm:text-base font-bold hover:text-slate-300"
+              className="text-xl max-sm:text-base font-bold hover:text-slate-300"
             >
               PracticeCraft.AI
             </Link>
           </div>
           <div className="hidden flex-none lg:block">
-            <ul className="menu menu-horizontal px-1">
+            <ul className="menu menu-horizontal px-1 text-lg font-bold">
               <li>
                 <Link
                   href={"/projects"}
-                  className={`text-base font-bold ${
+                  className={`${
                     props.active === "projects" ? "underline" : ""
                   }`}
                 >
@@ -94,9 +93,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               <li>
                 <Link
                   href={"https://discord.gg/9GPQEDht"}
-                  className={`text-base font-bold ${
-                    props.active === "discuss" ? "underline" : ""
-                  }`}
+                  className={`${props.active === "discuss" ? "underline" : ""}`}
                 >
                   Discuss
                 </Link>
@@ -104,9 +101,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               <li>
                 <Link
                   href={"/createProject"}
-                  className={`text-base font-bold ${
-                    props.active === "create" ? "underline" : ""
-                  }`}
+                  className={`${props.active === "create" ? "underline" : ""}`}
                 >
                   Create your own project
                 </Link>
@@ -120,7 +115,7 @@ const Header: React.FC<{ active: string }> = (props) => {
                   className="btn btn-ghost btn-circle avatar"
                   onClick={handleDropdownToggle}
                 >
-                  <div className="w-10 rounded-full">
+                  <div className="w-20 rounded-full">
                     <img alt="Profile" src={user.photoURL} />
                   </div>
                 </button>

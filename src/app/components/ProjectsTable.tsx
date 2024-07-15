@@ -1,6 +1,6 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import Link from "next/link";
-import axios from "axios";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebase/config";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 
@@ -27,54 +27,62 @@ const ProjectsTable = () => {
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [sortDifficulty, setSortDifficulty] = useState<string | null>(null);
   const [sortStatus, setSortStatus] = useState<string | null>(null);
-  const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchProjects = async (userId: string) => {
       try {
-        const userProjectsResponse = await axios.get(
-          `/api/getUserProjects?userId=${userId}`
+        const userProjectsCollection = collection(
+          db,
+          `projects/users/${userId}`
         );
-        let projectsArray: Project[] = userProjectsResponse.data;
+        const userProjectsSnapshot = await getDocs(userProjectsCollection);
+        let projectsArray: Project[] = userProjectsSnapshot.docs.map(
+          (doc) => doc.data() as Project
+        );
 
-        // Check if user projects exist
         if (projectsArray.length === 0) {
-          // Fetch general projects if user projects don't exist
-          const generalProjectsResponse = await axios.get(
-            "/api/getGeneralProjects"
+          const generalProjectsCollection = collection(db, "generalProjects");
+          const generalProjectsSnapshot = await getDocs(
+            generalProjectsCollection
           );
-          projectsArray = generalProjectsResponse.data.map((project: any) => ({
-            ...project,
+          projectsArray = generalProjectsSnapshot.docs.map((doc) => ({
+            ...doc.data(),
             done: false,
-          }));
+          })) as Project[];
 
-          // Add general projects to user's projects collection
           for (const project of projectsArray) {
             await addUserProject(userId, project);
           }
         }
 
         setProjects(projectsArray);
-        setFilteredProjects(projectsArray); // Initially set filtered projects to all projects
+        setFilteredProjects(projectsArray);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching projects:", error);
-      } finally {
-        setUserLoaded(true); // Set user data loaded flag to true
+        setLoading(false);
       }
     };
 
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const { uid } = JSON.parse(storedUser);
-      fetchProjects(uid); // Fetch projects when user data is available
-    }
-  }, []);
+    const addUserProject = async (userId: string, project: Project) => {
+      const userProjectsRef = collection(db, `projects/users/${userId}`);
+      const docRef = doc(userProjectsRef, String(project.id));
+      await setDoc(docRef, project);
+    };
 
-  const addUserProject = async (userId: string, project: Project) => {
-    const userProjectsRef = collection(db, `projects/users/${userId}`);
-    const docRef = doc(userProjectsRef, String(project.id));
-    await setDoc(docRef, project);
-  };
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchProjects(user.uid);
+      } else {
+        setLoading(false);
+        console.error("No authenticated user found.");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -111,22 +119,22 @@ const ProjectsTable = () => {
     }
   }, [searchTerm, projects, sortDifficulty, sortStatus]);
 
-  if (!userLoaded) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[90vh]">
-        <span className="loading loading-spinner loading-lg"></span>
+      <div className="text-center mt-8">
+        <p className="text-gray-600">Loading projects...</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto w-[80vw] h-auto mx-auto mb-20">
+    <div className="overflow-x-auto min-h-[91vh] w-[80vw] h-auto mx-auto mb-20">
       <h1 className="mb-4 text-2xl">Pet projects library</h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-2 sm:space-y-0">
         <div className="flex space-x-2">
-          <div className="dropdown">
-            <button className="btn m-1">Difficulty</button>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+          <details className="dropdown">
+            <summary className="btn m-1">Difficulty</summary>
+            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-24 p-2 shadow">
               <li>
                 <button
                   className={`menu-item ${
@@ -168,10 +176,10 @@ const ProjectsTable = () => {
                 </button>
               </li>
             </ul>
-          </div>
-          <div className="dropdown">
-            <button className="btn m-1">Status</button>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+          </details>
+          <details className="dropdown">
+            <summary className="btn m-1">Status</summary>
+            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-24 p-2 shadow">
               <li>
                 <button
                   className={`menu-item ${
@@ -203,7 +211,7 @@ const ProjectsTable = () => {
                 </button>
               </li>
             </ul>
-          </div>
+          </details>
         </div>
         <div className="flex space-x-2">
           <input
@@ -221,7 +229,6 @@ const ProjectsTable = () => {
             <tr className="bg-gray-800 text-white">
               <th className="py-2 px-4">Status</th>
               <th className="py-2 px-4">Title</th>
-              <th className="py-2 px-4">Acceptance</th>
               <th className="py-2 px-4">Difficulty</th>
               <th className="py-2 px-4">Topic</th>
             </tr>
@@ -239,8 +246,6 @@ const ProjectsTable = () => {
                 <td className="py-2 px-4">
                   <Link href={`/project/${project.id}`}>{project.name}</Link>
                 </td>
-                <td className="py-2 px-4">---</td>
-                {/* Placeholder for Acceptance */}
                 <td
                   className={`py-2 px-4 ${
                     project.difficulty === "easy"

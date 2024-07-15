@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { db } from "../../firebase/config";
 import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const greptileApiKey = process.env.NEXT_PUBLIC_GREPTILE_API;
 
@@ -22,32 +23,32 @@ const FeedBack: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedGithubToken = localStorage.getItem("githubToken");
-    const storedUser = localStorage.getItem("user");
-    const storedUserId = localStorage.getItem("userId");
-    if (storedGithubToken) {
-      setGithubToken(storedGithubToken);
-    }
-    if (!storedUser) {
-      router.push("/login"); // Redirect to login if user is null
-      return;
-    }
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUid(user.uid);
+        const storedGithubToken = localStorage.getItem("githubToken");
+        if (storedGithubToken) {
+          setGithubToken(storedGithubToken);
+        }
 
-    const storedProject = localStorage.getItem("project");
-    const storedGithubLink = localStorage.getItem("githubLink");
+        const storedProject = localStorage.getItem("project");
+        const storedGithubLink = localStorage.getItem("githubLink");
 
-    if (storedProject) {
-      setProject(JSON.parse(storedProject));
-      setProjectId(JSON.parse(storedProject).id);
-    }
+        if (storedProject) {
+          setProject(JSON.parse(storedProject));
+          setProjectId(JSON.parse(storedProject).id);
+        }
 
-    if (storedUser) {
-      setUid(JSON.parse(storedUser).uid);
-    }
+        if (storedGithubLink) {
+          setGithubLink(storedGithubLink);
+        }
+      } else {
+        router.push("/login"); // Redirect to login if user is null
+      }
+    });
 
-    if (storedGithubLink) {
-      setGithubLink(storedGithubLink);
-    }
+    return () => unsubscribe();
   }, [router]);
 
   const extractRepoDetails = (url: string) => {
@@ -190,13 +191,7 @@ const FeedBack: React.FC = () => {
           const numericGrade = parseFloat(numericGradeString);
 
           if (!isNaN(numericGrade) && numericGrade > 70) {
-            const projectRef = doc(
-              db,
-              "projects",
-              "users",
-              uid,
-              projectId + ""
-            );
+            const projectRef = doc(db, `projects/users/${uid}/${projectId}`);
             await updateDoc(projectRef, {
               done: true,
             });
@@ -245,7 +240,7 @@ const FeedBack: React.FC = () => {
               className="mb-6 p-6 border rounded-lg shadow-md bg-white"
             >
               <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                Feedback by Criteria
+                Feedback
               </h2>
               <p className="mb-4 text-gray-700">{item.feedback_by_criteria}</p>
               <h2 className="text-xl font-semibold mb-2 text-gray-800">
@@ -289,8 +284,25 @@ const FeedBack: React.FC = () => {
                 {item.recommendations
                   .split("\n")
                   .map((line: string, idx: number) => (
-                    <p key={idx} className="mb-2">
-                      {line}
+                    <p key={idx} className="mb-2 break-words">
+                      {line.includes("http")
+                        ? line.split(" ").map((word, index) => (
+                            <span key={index}>
+                              {word.startsWith("http") ? (
+                                <a
+                                  href={word}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:underline"
+                                >
+                                  {word}
+                                </a>
+                              ) : (
+                                `${word} `
+                              )}
+                            </span>
+                          ))
+                        : line}
                     </p>
                   ))}
               </div>

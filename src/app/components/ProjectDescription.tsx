@@ -1,9 +1,27 @@
+"use client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { faCircle } from "@fortawesome/free-regular-svg-icons";
 import React, { useState, useEffect } from "react";
 
-const ProjectDescription = ({ project }: any) => {
+interface ProjectDescriptionProps {
+  project: {
+    name: string;
+    difficulty: string;
+    topics: string;
+    "technical assignment": string;
+    "backend api": string;
+    requirements: {
+      bronze: string;
+      silver: string;
+      gold: string;
+    };
+    stack: string;
+    tasks: string[];
+  } | null; // Ensure project can be null
+}
+
+const ProjectDescription: React.FC<ProjectDescriptionProps> = ({ project }) => {
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(
     () => {
       const saved = localStorage.getItem("checkedItems");
@@ -22,6 +40,14 @@ const ProjectDescription = ({ project }: any) => {
     }));
   };
 
+  if (!project) {
+    return (
+      <div className="flex justify-center items-center min-h-[90vh]">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
   return (
     <div className="container w-full md:w-[80%] py-8">
       <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.name}</h1>
@@ -35,12 +61,16 @@ const ProjectDescription = ({ project }: any) => {
               : "bg-red-500"
           } text-white flex items-center`}
         >
-          {project.difficulty.charAt(0).toUpperCase() +
-            project.difficulty.slice(1)}
-        </span>
-        <span className="bg-gray-200 text-gray-800 py-1 px-3 rounded-full text-sm font-semibold mr-2 mb-2 whitespace-nowrap">
-          {project.topics}
-        </span>
+          {project.difficulty
+            ? project.difficulty.charAt(0).toUpperCase() +
+              project.difficulty.slice(1)
+            : ""}
+        </span>{" "}
+        <div className="flex flex-wrap">
+          <span className="bg-gray-200 text-gray-800 py-2 px-4 rounded-full text-sm font-semibold mr-2 mb-2 overflow-ellipsis wrap">
+            {project.topics}
+          </span>
+        </div>
       </div>
       <p className="mb-4">
         <strong>Technical Assignment:</strong> {project["technical assignment"]}

@@ -1,5 +1,6 @@
+"use client";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import Typewriter from "typewriter-effect";
 
 interface HeroProps {
@@ -10,6 +11,17 @@ interface HeroProps {
 }
 
 export default function Hero(props: HeroProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      router.push("/projects");
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
     <div className="relative h-screen">
       <Image
@@ -44,11 +56,12 @@ export default function Hero(props: HeroProps) {
             }}
           />
         </div>
-        <Link href="/projects">
-          <button className="bg-orange-500 text-white px-6 py-3 text-lg md:text-xl rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold">
-            {props.buttonText}
-          </button>
-        </Link>
+        <button
+          className="bg-orange-500 text-white px-6 py-3 text-lg md:text-xl rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
+          onClick={handleClick}
+        >
+          {props.buttonText}
+        </button>
       </div>
     </div>
   );

@@ -68,6 +68,7 @@ const CreateProject = () => {
             type="text"
             name="knowledgeLevel"
             value={formData.knowledgeLevel}
+            placeholder="beginner"
             onChange={handleChange}
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none"
             required
@@ -80,6 +81,7 @@ const CreateProject = () => {
             name="experience"
             value={formData.experience}
             onChange={handleChange}
+            placeholder="2 years"
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none"
             required
           />
@@ -93,6 +95,7 @@ const CreateProject = () => {
             name="technologies"
             value={formData.technologies}
             onChange={handleChange}
+            placeholder="Flux, Next Js"
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none"
             required
           />
@@ -104,6 +107,7 @@ const CreateProject = () => {
             name="interests"
             value={formData.interests}
             onChange={handleChange}
+            placeholder="big tennis"
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none"
             required
           />
@@ -115,6 +119,7 @@ const CreateProject = () => {
             name="preferences"
             value={formData.preferences}
             onChange={handleChange}
+            placeholder="be creative and make it fun"
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none"
             required
           />
