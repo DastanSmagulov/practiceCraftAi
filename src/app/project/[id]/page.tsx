@@ -14,6 +14,14 @@ interface Project {
   stack: string;
   topics: string;
   difficulty: string;
+  "technical assignment": string; // Add this property
+  "backend api": string; // Add this property
+  requirements: {
+    bronze: string;
+    silver: string;
+    gold: string;
+  }; // Add this property
+  tasks: string[]; // Add this property
 }
 
 interface ProjectProps {

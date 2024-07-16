@@ -7,7 +7,6 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 
 const greptileApiKey = process.env.NEXT_PUBLIC_GREPTILE_API;
 
