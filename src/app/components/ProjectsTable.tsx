@@ -1,6 +1,6 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import Link from "next/link";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import axios from "axios";
 import { db } from "../firebase/config";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 
@@ -27,62 +27,54 @@ const ProjectsTable = () => {
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [sortDifficulty, setSortDifficulty] = useState<string | null>(null);
   const [sortStatus, setSortStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
 
   useEffect(() => {
     const fetchProjects = async (userId: string) => {
       try {
-        const userProjectsCollection = collection(
-          db,
-          `projects/users/${userId}`
+        const userProjectsResponse = await axios.get(
+          `/api/getUserProjects?userId=${userId}`
         );
-        const userProjectsSnapshot = await getDocs(userProjectsCollection);
-        let projectsArray: Project[] = userProjectsSnapshot.docs.map(
-          (doc) => doc.data() as Project
-        );
+        let projectsArray: Project[] = userProjectsResponse.data;
 
+        // Check if user projects exist
         if (projectsArray.length === 0) {
-          const generalProjectsCollection = collection(db, "generalProjects");
-          const generalProjectsSnapshot = await getDocs(
-            generalProjectsCollection
+          // Fetch general projects if user projects don't exist
+          const generalProjectsResponse = await axios.get(
+            "/api/getGeneralProjects"
           );
-          projectsArray = generalProjectsSnapshot.docs.map((doc) => ({
-            ...doc.data(),
+          projectsArray = generalProjectsResponse.data.map((project: any) => ({
+            ...project,
             done: false,
-          })) as Project[];
+          }));
 
+          // Add general projects to user's projects collection
           for (const project of projectsArray) {
             await addUserProject(userId, project);
           }
         }
 
         setProjects(projectsArray);
-        setFilteredProjects(projectsArray);
-        setLoading(false);
+        setFilteredProjects(projectsArray); // Initially set filtered projects to all projects
       } catch (error) {
         console.error("Error fetching projects:", error);
-        setLoading(false);
+      } finally {
+        setUserLoaded(true); // Set user data loaded flag to true
       }
     };
 
-    const addUserProject = async (userId: string, project: Project) => {
-      const userProjectsRef = collection(db, `projects/users/${userId}`);
-      const docRef = doc(userProjectsRef, String(project.id));
-      await setDoc(docRef, project);
-    };
-
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchProjects(user.uid);
-      } else {
-        setLoading(false);
-        console.error("No authenticated user found.");
-      }
-    });
-
-    return () => unsubscribe();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const { uid } = JSON.parse(storedUser);
+      fetchProjects(uid); // Fetch projects when user data is available
+    }
   }, []);
+
+  const addUserProject = async (userId: string, project: Project) => {
+    const userProjectsRef = collection(db, `projects/users/${userId}`);
+    const docRef = doc(userProjectsRef, String(project.id));
+    await setDoc(docRef, project);
+  };
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -119,16 +111,17 @@ const ProjectsTable = () => {
     }
   }, [searchTerm, projects, sortDifficulty, sortStatus]);
 
-  if (loading) {
+  if (!userLoaded) {
     return (
-      <div className="text-center mt-8">
-        <p className="text-gray-600">Loading projects...</p>
+      <div className="flex justify-center items-center min-h-[70vh]">
+        <span className="loading loading-spinner loading-lg"></span>
+        <h1 className="ml-2">Projects are generated</h1>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto min-h-[91vh] w-[80vw] h-auto mx-auto mb-20">
+    <div className="overflow-x-auto w-[80vw] min-h-[90vh] h-auto mx-auto mb-20">
       <h1 className="mb-4 text-2xl">Pet projects library</h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-2 sm:space-y-0">
         <div className="flex space-x-2">
@@ -229,6 +222,7 @@ const ProjectsTable = () => {
             <tr className="bg-gray-800 text-white">
               <th className="py-2 px-4">Status</th>
               <th className="py-2 px-4">Title</th>
+              <th className="py-2 px-4">Acceptance</th>
               <th className="py-2 px-4">Difficulty</th>
               <th className="py-2 px-4">Topic</th>
             </tr>
@@ -246,6 +240,8 @@ const ProjectsTable = () => {
                 <td className="py-2 px-4">
                   <Link href={`/project/${project.id}`}>{project.name}</Link>
                 </td>
+                <td className="py-2 px-4">---</td>
+                {/* Placeholder for Acceptance */}
                 <td
                   className={`py-2 px-4 ${
                     project.difficulty === "easy"

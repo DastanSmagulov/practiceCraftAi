@@ -45,9 +45,9 @@ function Login() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleGithubLogin = () => {
+  const handleGithubLogin = async () => {
     setLoading(true);
-    signInWithPopup(auth, provider)
+    await signInWithPopup(auth, provider)
       .then((result) => {
         const userData = {
           uid: result.user.uid,

@@ -64,7 +64,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="bg-[#1A1A1A] min-h-[90vh] h-auto flex flex-col items-center justify-center text-white p-4">
+    <div className="bg-[#1A1A1A] min-h-[80vh] h-auto flex flex-col items-center justify-center text-white p-4">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mb-6">
         <div className="flex items-center">
           <img

@@ -57,7 +57,7 @@ const CreateProject = () => {
   };
 
   return (
-    <div className="max-w-3xl mt-24 mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md">
+    <div className="max-w-3xl my-24 mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md">
       <h1 className="text-3xl font-bold mb-6">Create Project</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/navigation";
-import { setPersistence, browserSessionPersistence } from "firebase/auth";
 
 const Header: React.FC<{ active: string }> = (props) => {
   const [user, setUser] = useState<any>(null);
@@ -25,17 +24,9 @@ const Header: React.FC<{ active: string }> = (props) => {
     auth
       .signOut()
       .then(() => {
-        router.push("/");
         setUser(null);
         localStorage.removeItem("user");
-        // Clear persistent state after signing out
-        setPersistence(auth, browserSessionPersistence)
-          .then(() => {
-            console.log("Persistent state cleared successfully");
-          })
-          .catch((error) => {
-            console.error("Error clearing persistent state: ", error);
-          });
+        router.push("/");
       })
       .catch((error) => {
         console.error("Error signing out: ", error);
@@ -94,6 +85,8 @@ const Header: React.FC<{ active: string }> = (props) => {
                 <Link
                   href={"https://discord.gg/9GPQEDht"}
                   className={`${props.active === "discuss" ? "underline" : ""}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Discuss
                 </Link>
@@ -162,6 +155,8 @@ const Header: React.FC<{ active: string }> = (props) => {
               className={`text-base font-bold ${
                 props.active === "discuss" ? "underline" : ""
               }`}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Discuss
             </Link>

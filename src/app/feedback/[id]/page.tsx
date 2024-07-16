@@ -6,6 +6,8 @@ import { db } from "../../firebase/config";
 import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const greptileApiKey = process.env.NEXT_PUBLIC_GREPTILE_API;
 
@@ -19,6 +21,7 @@ const FeedBack: React.FC = () => {
   const [feedbackReceived, setFeedbackReceived] = useState<boolean>(false);
   const [uid, setUid] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
+  const [pdfLoading, setPdfLoading] = useState<boolean>(false); // New state for PDF loading
 
   const router = useRouter();
 
@@ -195,7 +198,6 @@ const FeedBack: React.FC = () => {
             await updateDoc(projectRef, {
               done: true,
             });
-            console.log("after", projectRef);
             toast.success("Project submitted and marked as done!");
           } else {
             toast.info(
@@ -215,8 +217,116 @@ const FeedBack: React.FC = () => {
       });
   };
 
+  const generatePDF = async () => {
+    if (!project || !feedback.length) {
+      toast.error("No project or feedback data available for PDF generation.");
+      return;
+    }
+
+    setPdfLoading(true);
+
+    try {
+      const userMessages = localStorage.getItem("userrMessages");
+      const response = await fetch("/api/getFeedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessages || "",
+          project: project || {},
+          feedback: feedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      const feedbackText = responseData.response;
+
+      const pdfDoc = new jsPDF(); // Rename 'doc' to 'pdfDoc'
+      const title = project.name || "Project Feedback";
+      pdfDoc.setFontSize(20);
+      pdfDoc.text(title, 20, 10);
+
+      // General Feedback Section
+      pdfDoc.setFontSize(16);
+      pdfDoc.text("General Feedback:", 20, 20);
+
+      let startY = 30;
+      const lineHeight = 7; // Adjust as needed for spacing between lines
+      const maxWidth = pdfDoc.internal.pageSize.getWidth() - 40; // Adjust as needed for left and right margins
+
+      feedback.forEach((item: any, index: number) => {
+        // Criteria
+        pdfDoc.setFont("helvetica", "bold");
+        const criteriaText = `${index + 1}. ${item.feedback_by_criteria}`;
+        const splitCriteriaText = pdfDoc.splitTextToSize(
+          criteriaText,
+          maxWidth
+        );
+        pdfDoc.text(splitCriteriaText, 20, startY);
+        startY += splitCriteriaText.length * lineHeight;
+        pdfDoc.setFont("helvetica", "normal");
+
+        pdfDoc.text("Grades:", 20, 73);
+
+        // Bronze Grade
+        pdfDoc.setFontSize(12);
+        const bronzeGradeText = `Bronze: ${item.grade.bronze.grade} / 100`;
+        pdfDoc.text(bronzeGradeText, 30, startY + lineHeight);
+
+        // Silver Grade
+        const silverGradeText = `Silver: ${item.grade.silver.grade} / 100`;
+        pdfDoc.text(silverGradeText, 30, startY + 2 * lineHeight);
+
+        // Gold Grade
+        const goldGradeText = `Gold: ${item.grade.gold.grade} / 100`;
+        pdfDoc.text(goldGradeText, 30, startY + 3 * lineHeight);
+
+        // Overall Grade
+        const overallGradeText = `Overall: ${item.grade.overall.grade} / 100`;
+        pdfDoc.text(overallGradeText, 30, startY + 4 * lineHeight);
+
+        // Recommendations
+        pdfDoc.setFontSize(16);
+        const recommendationsText = `Recommendations:\n${item.recommendations}`;
+        const splitRecommendations = pdfDoc.splitTextToSize(
+          recommendationsText,
+          maxWidth
+        );
+        pdfDoc.text(splitRecommendations, 20, startY + 5 * lineHeight);
+
+        // Adjust startY for the next feedback item
+        const maxBlockHeight =
+          Math.max(splitRecommendations.length) * lineHeight;
+
+        startY += maxBlockHeight + 10; // Add extra space between feedback items
+      });
+
+      // New Page for CV Description
+      pdfDoc.addPage();
+      pdfDoc.setFontSize(20);
+      pdfDoc.text("Project Description for CV(Example):", 20, 10);
+
+      pdfDoc.setFontSize(12);
+      pdfDoc.text(feedbackText, 20, 20, { maxWidth: 170 });
+
+      pdfDoc.save("feedback.pdf");
+      toast.success("PDF Generated and downloaded.");
+    } catch (error: any) {
+      console.error("Error generating PDF:", error);
+      toast.error("Error generating PDF: " + error.message);
+    } finally {
+      setPdfLoading(false); // Set PDF loading state to false
+      localStorage.removeItem("userMessages");
+    }
+  };
+
   return (
-    <div className="min-h-[91vh] bg-[#181818] text-white p-8 flex flex-col items-center justify-center">
+    <div className="min-h-[80vh] bg-[#181818] text-white p-8 flex flex-col items-center justify-center">
       <header className="w-full max-w-3xl bg-gray-800 p-4 rounded-lg mb-6">
         <h1 className="text-3xl font-bold text-center">Project Feedback</h1>
       </header>
@@ -308,12 +418,21 @@ const FeedBack: React.FC = () => {
               </div>
             </div>
           ))}
-          <button
-            onClick={() => router.push("/projects")}
-            className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
-          >
-            Go to Projects
-          </button>
+          <div className="flex justify-between max-md:flex-col">
+            <button
+              onClick={() => router.push("/projects")}
+              className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
+            >
+              Go to Projects
+            </button>
+            <button
+              onClick={generatePDF}
+              disabled={pdfLoading}
+              className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
+            >
+              {pdfLoading ? "PDF is generating..." : "Generate detailed PDF"}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center">
@@ -322,6 +441,7 @@ const FeedBack: React.FC = () => {
           </h2>
           <button
             onClick={submit}
+            disabled={loading}
             className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-2"
           >
             Get Feedback

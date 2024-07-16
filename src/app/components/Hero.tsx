@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import Typewriter from "typewriter-effect";
 
@@ -11,15 +11,9 @@ interface HeroProps {
 }
 
 export default function Hero(props: HeroProps) {
-  const router = useRouter();
-
-  const handleClick = () => {
+  const getLinkHref = () => {
     const user = localStorage.getItem("user");
-    if (user) {
-      router.push("/projects");
-    } else {
-      router.push("/login");
-    }
+    return user ? "/projects" : "/login";
   };
 
   return (
@@ -56,12 +50,12 @@ export default function Hero(props: HeroProps) {
             }}
           />
         </div>
-        <button
+        <Link
           className="bg-orange-500 text-white px-6 py-3 text-lg md:text-xl rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
-          onClick={handleClick}
+          href={getLinkHref()}
         >
           {props.buttonText}
-        </button>
+        </Link>
       </div>
     </div>
   );

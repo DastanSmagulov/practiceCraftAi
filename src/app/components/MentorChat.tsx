@@ -1,7 +1,5 @@
 import { useState, useEffect, ChangeEvent, KeyboardEvent } from "react";
 import axios from "axios";
-import { db } from "../firebase/config"; // Import Firebase Firestore configuration
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"; // Firestore functions
 
 type Message = {
   text: string;
@@ -15,6 +13,19 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
   const [currentMentorMessage, setCurrentMentorMessage] = useState<string>("");
   const [messageQueue, setMessageQueue] = useState<string>("");
 
+  // Load messages from local storage on component mount
+  useEffect(() => {
+    const storedMessages = localStorage.getItem("userMessages");
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+    }
+  }, []);
+
+  // Save messages to local storage whenever messages state changes
+  useEffect(() => {
+    localStorage.setItem("userMessages", JSON.stringify(messages));
+  }, [messages]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -24,8 +35,6 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
         setMessageQueue((prev) => prev.slice(1));
       }, 20); // Reduced delay for faster typing effect
     } else if (currentMentorMessage.length > 0 && isLoading) {
-      // When typing is done
-      // saveMessageToFirestore(currentMentorMessage); // Save mentor message to Firestore
       setMessages((prevMessages) => [
         ...prevMessages,
         { text: currentMentorMessage, sender: "mentor" },
@@ -36,34 +45,6 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
 
     return () => clearInterval(interval);
   }, [messageQueue, currentMentorMessage, isLoading]);
-
-  // const saveMessageToFirestore = async (message: string) => {
-  //   try {
-  //     await addMentorMessageToFirestore(message);
-  //   } catch (error) {
-  //     console.error("Error saving mentor message to Firestore:", error);
-  //   }
-  // };
-
-  // const addMentorMessageToFirestore = async (message: string) => {
-  //   try {
-  //     // Define the Firestore collection reference
-  //     const messagesCollectionRef = collection(
-  //       db,
-  //       `projects/${project.id}/chat`
-  //     );
-
-  //     // Create a new document with a generated ID
-  //     await addDoc(messagesCollectionRef, {
-  //       text: message,
-  //       sender: "mentor",
-  //       timestamp: serverTimestamp(), // Ensure you have imported serverTimestamp from firebase.firestore
-  //     });
-  //   } catch (error) {
-  //     console.error("Error adding mentor message to Firestore:", error);
-  //     throw new Error("Failed to add mentor message to Firestore");
-  //   }
-  // };
 
   const handleSend = async () => {
     if (input.trim()) {
