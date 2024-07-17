@@ -13,7 +13,7 @@ const CreateProject = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null); // Assuming user data includes `uid`
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,34 +24,61 @@ const CreateProject = () => {
     }
   }, []);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (!user) {
-        console.error("User data not found in localStorage");
-        return;
+    if (!user) {
+      console.error("User data not found in localStorage");
+      return;
+    }
+
+    setLoading(true);
+    const { uid } = user;
+
+    // Axios instance with custom settings
+    const axiosInstance = axios.create({
+      timeout: 20000, // Increased timeout to 20 seconds
+    });
+
+    // Axios interceptor for retry logic
+    axiosInstance.interceptors.response.use(null, (error) => {
+      const config = error.config;
+      if (!config || !config.retryCount) return Promise.reject(error);
+
+      config.retryCount -= 1;
+
+      if (config.retryCount <= 0) {
+        return Promise.reject(error);
       }
 
-      setLoading(true);
-
-      const { uid } = user;
-
-      const response = await axios.post(`/api/createProject?userId=${uid}`, {
-        formData,
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(axiosInstance(config));
+        }, config.retryDelay || 1000);
       });
+    });
 
+    // Initial request configuration
+    const requestConfig = {
+      url: `/api/createProject?userId=${uid}`,
+      method: "post",
+      data: { formData },
+      retryCount: 3, // Number of retries
+      retryDelay: 1000, // Delay between retries
+    };
+
+    try {
+      const response = await axiosInstance(requestConfig);
       const { newProjectId } = response.data;
       if (newProjectId) {
         router.push(`/project/${newProjectId}`);
       }
-
-      setLoading(false);
     } catch (error) {
       console.error("Error generating project:", error);
+    } finally {
       setLoading(false);
     }
   };

@@ -18,6 +18,7 @@ interface FormData {
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
+
   try {
     const { formData }: { formData: FormData } = await request.json();
 
@@ -87,7 +88,7 @@ Generate a project:
         throw new Error("Invalid JSON format in OpenAI response");
       }
 
-      console.log("Project to be added to Realtime Database:", project);
+      console.log("Project to be added to Firestore:", project);
 
       try {
         const docRef = await addDoc(
@@ -106,11 +107,11 @@ Generate a project:
         return NextResponse.json({ newProjectId: docRef.id });
       } catch (databaseError: any) {
         console.error(
-          "Failed to add document to Realtime Database:",
+          "Failed to add document to Firestore:",
           databaseError.message
         );
         return NextResponse.json(
-          { error: "Failed to add document to Realtime Database" },
+          { error: "Failed to add document to Firestore" },
           { status: 500 }
         );
       }
