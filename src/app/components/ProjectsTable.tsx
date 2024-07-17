@@ -222,7 +222,6 @@ const ProjectsTable = () => {
             <tr className="bg-gray-800 text-white">
               <th className="py-2 px-4">Status</th>
               <th className="py-2 px-4">Title</th>
-              <th className="py-2 px-4">Acceptance</th>
               <th className="py-2 px-4">Difficulty</th>
               <th className="py-2 px-4">Topic</th>
             </tr>
@@ -240,8 +239,6 @@ const ProjectsTable = () => {
                 <td className="py-2 px-4">
                   <Link href={`/project/${project.id}`}>{project.name}</Link>
                 </td>
-                <td className="py-2 px-4">---</td>
-                {/* Placeholder for Acceptance */}
                 <td
                   className={`py-2 px-4 ${
                     project.difficulty === "easy"

@@ -270,8 +270,6 @@ const FeedBack: React.FC = () => {
         startY += splitCriteriaText.length * lineHeight;
         pdfDoc.setFont("helvetica", "normal");
 
-        pdfDoc.text("Grades:", 20, 73);
-
         // Bronze Grade
         pdfDoc.setFontSize(12);
         const bronzeGradeText = `Bronze: ${item.grade.bronze.grade} / 100`;
