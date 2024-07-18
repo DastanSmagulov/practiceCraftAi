@@ -4,7 +4,7 @@ import { db, firebase_app as firebaseApp } from "../../firebase/config";
 import { addDoc, collection } from "firebase/firestore";
 
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY as string,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 interface FormData {
@@ -15,7 +15,7 @@ interface FormData {
   preferences: string;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: any) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
