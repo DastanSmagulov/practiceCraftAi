@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const { formData }: { formData: FormData } = await request.json();
 
     const systemPrompt = `
-You are a professional developer that creates descriptive pet project ideas for mentees. Provide creative and detailed responses. The project should be in JSON format as this(generate project with api only if you find it and sure about this free api): {
+You are a professional developer that creates descriptive pet project ideas for mentees. Provide creative and detailed responses. The project should be in JSON format as this(generate project with api only if you find it and sure about this free api. if you don't sure about api create project without api): {
       "approved": false,
       "backend api": "https://jsonplaceholder.typicode.com/posts",
       "difficulty": "easy, medium or hard",
@@ -104,7 +104,7 @@ Generate a project:
           docRef.id
         );
 
-        return NextResponse.json({ newProjectId: docRef.id });
+        return NextResponse.json({ newProjectId: docRef.id }, { status: 200 });
       } catch (databaseError: any) {
         console.error(
           "Failed to add document to Firestore:",
