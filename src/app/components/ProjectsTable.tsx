@@ -1,8 +1,10 @@
+"use client";
 import { useEffect, useState, ChangeEvent } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { db } from "../firebase/config";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 interface Project {
   name: string;
@@ -28,6 +30,27 @@ const ProjectsTable = () => {
   const [sortDifficulty, setSortDifficulty] = useState<string | null>(null);
   const [sortStatus, setSortStatus] = useState<string | null>(null);
   const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
+  const [showModal, setShowModal] = useState(false); // State to control modal visibility
+
+  const [formData, setFormData] = useState({
+    knowledgeLevel: "",
+    experience: "",
+    technologies: "",
+    interests: "",
+    preferences: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async (userId: string) => {
@@ -63,12 +86,10 @@ const ProjectsTable = () => {
       }
     };
 
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const { uid } = JSON.parse(storedUser);
-      fetchProjects(uid); // Fetch projects when user data is available
+    if (user) {
+      fetchProjects(user.uid); // Fetch projects when user data is available
     }
-  }, []);
+  }, [user]);
 
   const addUserProject = async (userId: string, project: Project) => {
     const userProjectsRef = collection(db, `projects/users/${userId}`);
@@ -110,6 +131,66 @@ const ProjectsTable = () => {
       setFilteredProjects(results);
     }
   }, [searchTerm, projects, sortDifficulty, sortStatus]);
+
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!user) {
+      console.error("User data not found in localStorage");
+      return;
+    }
+
+    setLoading(true);
+    const { uid } = user;
+
+    // Axios instance with custom settings
+    const axiosInstance = axios.create({
+      timeout: 20000, // Increased timeout to 20 seconds
+    });
+
+    // Axios interceptor for retry logic
+    axiosInstance.interceptors.response.use(null, (error) => {
+      const config = error.config;
+      if (!config || !config.retryCount) return Promise.reject(error);
+
+      config.retryCount -= 1;
+
+      if (config.retryCount <= 0) {
+        return Promise.reject(error);
+      }
+
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(axiosInstance(config));
+        }, config.retryDelay || 1000);
+      });
+    });
+
+    // Initial request configuration
+    const requestConfig = {
+      url: `/api/createProject?userId=${uid}`,
+      method: "post",
+      data: { formData },
+      retryCount: 3, // Number of retries
+      retryDelay: 1000, // Delay between retries
+    };
+
+    try {
+      const response = await axiosInstance(requestConfig);
+      const { newProjectId } = response.data;
+      if (newProjectId) {
+        router.push(`/project/${newProjectId}`);
+      }
+    } catch (error) {
+      console.error("Error generating project:", error);
+    } finally {
+      setLoading(false);
+      setShowModal(false); // Close the modal after submission
+    }
+  };
 
   if (!userLoaded) {
     return (
@@ -206,14 +287,20 @@ const ProjectsTable = () => {
             </ul>
           </details>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex max-md:flex-col max-md:gap-3 space-x-2 md:items-center">
           <input
             type="text"
-            placeholder="Search projects"
+            placeholder="Search by name, stack or topic..."
             className="input input-bordered"
             value={searchTerm}
             onChange={handleSearch}
           />
+          <button
+            className="bg-orange-500 text-white p-3 rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
+            onClick={() => setShowModal(true)}
+          >
+            Create Project
+          </button>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -256,6 +343,123 @@ const ProjectsTable = () => {
           </tbody>
         </table>
       </div>
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
+          <div className="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md max-h-full overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4 text-white">
+              Create New Project
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="knowledgeLevel"
+                  className="block text-lg font-medium text-white mb-2"
+                >
+                  Knowledge Level
+                </label>
+                <input
+                  type="text"
+                  id="knowledgeLevel"
+                  name="knowledgeLevel"
+                  value={formData.knowledgeLevel}
+                  onChange={handleChange}
+                  placeholder="beginner"
+                  className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="experience"
+                  className="block text-lg font-medium text-white mb-2"
+                >
+                  Experience
+                </label>
+                <input
+                  type="text"
+                  id="experience"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  placeholder="2 years"
+                  className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="technologies"
+                  className="block text-lg font-medium text-white mb-2"
+                >
+                  Technologies or Topics
+                </label>
+                <input
+                  type="text"
+                  id="technologies"
+                  name="technologies"
+                  value={formData.technologies}
+                  onChange={handleChange}
+                  placeholder="Flux, Next Js"
+                  className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="interests"
+                  className="block text-lg font-medium text-white mb-2"
+                >
+                  Interests
+                </label>
+                <input
+                  type="text"
+                  id="interests"
+                  name="interests"
+                  value={formData.interests}
+                  onChange={handleChange}
+                  placeholder="big tennis"
+                  className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="preferences"
+                  className="block text-lg font-medium text-white mb-2"
+                >
+                  Preferences
+                </label>
+                <input
+                  type="text"
+                  id="preferences"
+                  name="preferences"
+                  value={formData.preferences}
+                  onChange={handleChange}
+                  placeholder="be creative and make it fun"
+                  className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                <button
+                  type="button"
+                  className="w-full sm:w-auto py-2 px-4 bg-gray-600 text-white font-semibold rounded-md shadow-md hover:bg-gray-500 transition duration-300"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto py-2 px-4 bg-orange-500 text-white font-bold rounded-md shadow-md hover:bg-orange-600 transition duration-300"
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "Create"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

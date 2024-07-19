@@ -340,7 +340,7 @@ const FeedBack: React.FC = () => {
       ) : loading ? (
         <div className="text-lg font-bold mb-2">Generating feedback...</div>
       ) : feedbackReceived ? (
-        <div className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-3xl">
+        <div className="rounded-lg shadow-md w-full max-w-3xl">
           {feedback.map((item: any, index: number) => (
             <div
               key={index}
@@ -422,13 +422,18 @@ const FeedBack: React.FC = () => {
             >
               Go to Projects
             </button>
-            <button
-              onClick={generatePDF}
-              disabled={pdfLoading}
-              className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
+            <div
+              className="tooltip"
+              data-tip="Here you can generate feedback in pdf format, and project description for CV."
             >
-              {pdfLoading ? "PDF is generating..." : "Generate detailed PDF"}
-            </button>
+              <button
+                onClick={generatePDF}
+                disabled={pdfLoading}
+                className="bg-orange-500 text-white p-3 text-sm w-full rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
+              >
+                {pdfLoading ? "PDF is generating..." : "Generate detailed PDF"}
+              </button>
+            </div>
           </div>
         </div>
       ) : (

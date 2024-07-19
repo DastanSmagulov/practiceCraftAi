@@ -91,14 +91,6 @@ const Header: React.FC<{ active: string }> = (props) => {
                   Discuss
                 </Link>
               </li>
-              <li>
-                <Link
-                  href={"/createProject"}
-                  className={`${props.active === "create" ? "underline" : ""}`}
-                >
-                  Create your own project
-                </Link>
-              </li>
             </ul>
           </div>
           <div className="md:pr-20 relative">
@@ -159,16 +151,6 @@ const Header: React.FC<{ active: string }> = (props) => {
               rel="noopener noreferrer"
             >
               Discuss
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={"/createProject"}
-              className={`text-base font-bold ${
-                props.active === "create" ? "underline" : ""
-              }`}
-            >
-              Create your own project
             </Link>
           </li>
         </ul>

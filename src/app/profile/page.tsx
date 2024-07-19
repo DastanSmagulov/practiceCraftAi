@@ -65,7 +65,7 @@ const Profile = () => {
 
   return (
     <div className="bg-[#1A1A1A] min-h-[80vh] h-auto flex flex-col items-center justify-center text-white p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mb-6">
+      <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-full max-w-md mb-6">
         <div className="flex items-center">
           <img
             src={user.photoURL}
@@ -74,11 +74,9 @@ const Profile = () => {
           />
           <div>
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl text-gray-600 font-bold">
-                {user.displayName}
-              </h1>
+              <h1 className="text-2xl font-bold">{user.displayName}</h1>
             </div>
-            <p className="text-gray-600 email-text">{user.email}</p>
+            <p className="email-text">{user.email}</p>
           </div>
         </div>
       </div>
