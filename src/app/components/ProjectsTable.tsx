@@ -148,7 +148,7 @@ const ProjectsTable = () => {
 
     // Axios instance with custom settings
     const axiosInstance = axios.create({
-      timeout: 20000, // Increased timeout to 20 seconds
+      timeout: 5000, // Reduced timeout to 5 seconds
     });
 
     // Axios interceptor for retry logic
@@ -174,8 +174,8 @@ const ProjectsTable = () => {
       url: `/api/createProject?userId=${uid}`,
       method: "post",
       data: { formData },
-      retryCount: 3, // Number of retries
-      retryDelay: 1000, // Delay between retries
+      retryCount: 2, // Reduced number of retries
+      retryDelay: 500, // Reduced delay between retries
     };
 
     try {
@@ -203,7 +203,7 @@ const ProjectsTable = () => {
 
   return (
     <div className="overflow-x-auto w-[80vw] min-h-[90vh] h-auto mx-auto mb-20">
-      <h1 className="mb-4 text-2xl">Pet projects library</h1>
+      <h1 className="mb-4 text-3xl font-bold">Pet projects library</h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-2 sm:space-y-0">
         <div className="flex space-x-2">
           <details className="dropdown">

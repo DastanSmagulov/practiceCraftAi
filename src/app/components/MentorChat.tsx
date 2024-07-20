@@ -13,18 +13,20 @@ const MentorChat: React.FC<{ project: any }> = ({ project }) => {
   const [currentMentorMessage, setCurrentMentorMessage] = useState<string>("");
   const [messageQueue, setMessageQueue] = useState<string>("");
 
+  const projectId = project.id;
+
   // Load messages from local storage on component mount
   useEffect(() => {
-    const storedMessages = localStorage.getItem("userMessages");
+    const storedMessages = localStorage.getItem(`userMessages_${projectId}`);
     if (storedMessages) {
       setMessages(JSON.parse(storedMessages));
     }
-  }, []);
+  }, [projectId]);
 
   // Save messages to local storage whenever messages state changes
   useEffect(() => {
-    localStorage.setItem("userMessages", JSON.stringify(messages));
-  }, [messages]);
+    localStorage.setItem(`userMessages_${projectId}`, JSON.stringify(messages));
+  }, [messages, projectId]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

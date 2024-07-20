@@ -21,16 +21,21 @@ interface ProjectDescriptionProps {
   } | null; // Ensure project can be null
 }
 
-const ProjectDescription: React.FC<ProjectDescriptionProps> = ({ project }) => {
+const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
+  project,
+}: any) => {
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(
     () => {
-      const saved = localStorage.getItem("checkedItems");
+      const saved = localStorage.getItem(`checkedItems_${project.id}`);
       return saved ? JSON.parse(saved) : {};
     }
   );
 
   useEffect(() => {
-    localStorage.setItem("checkedItems", JSON.stringify(checkedItems));
+    localStorage.setItem(
+      `checkedItems_${project.id}`,
+      JSON.stringify(checkedItems)
+    );
   }, [checkedItems]);
 
   const handleCheck = (item: string) => {

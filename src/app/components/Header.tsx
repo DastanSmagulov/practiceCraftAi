@@ -25,7 +25,7 @@ const Header: React.FC<{ active: string }> = (props) => {
       .signOut()
       .then(() => {
         setUser(null);
-        localStorage.removeItem("user");
+        localStorage.clear();
         router.push("/");
       })
       .catch((error) => {
@@ -61,15 +61,15 @@ const Header: React.FC<{ active: string }> = (props) => {
               </svg>
             </label>
           </div>
-          <div className="mx-2 lg:pl-20">
+          <div>
             <Link
               href={"/"}
-              className="text-xl max-sm:text-base font-bold hover:text-slate-300"
+              className="text-xl lg:ml-20 max-sm:text-base font-bold hover:text-slate-300"
             >
               PracticeCraft.AI
             </Link>
           </div>
-          <div className="hidden flex-none lg:block">
+          <div className="hidden flex-none lg:block lg:mr-20">
             <ul className="menu menu-horizontal px-1 text-lg font-bold">
               <li>
                 <Link

@@ -21,6 +21,7 @@ const FeedBack: React.FC = () => {
   const [uid, setUid] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
   const [pdfLoading, setPdfLoading] = useState<boolean>(false); // New state for PDF loading
+  const [totalGrade, setTotalGrade] = useState<number>(0); // State for total grade
 
   const router = useRouter();
 
@@ -104,7 +105,7 @@ const FeedBack: React.FC = () => {
         content: `
         The following is the project description with criteria for different levels. 
         Provide feedback according to this JSON: ${JSON.stringify(project)}.
-        If the GitHub link does not fit the criteria, or not about this topic give 0 in the JSON format. Project should meet all criteria including technical assignment. 
+        If the GitHub link does not fit the criteria of the project, or github link not about this topic give 0 in the JSON format. Project should meet all criteria including technical assignment. 
         Give detailed feedback for every step of the project, highlighting what the user can do better and what they have done well. 
         Also, assign grades according to the following scheme:
         - Bronze level: out of 100 percent
@@ -203,6 +204,7 @@ const FeedBack: React.FC = () => {
               "Project submitted but not marked as done due to low grade."
             );
           }
+          setTotalGrade(numericGrade);
         } else {
           throw new Error("Invalid overall grade format received.");
         }
@@ -225,7 +227,8 @@ const FeedBack: React.FC = () => {
     setPdfLoading(true);
 
     try {
-      const userMessages = localStorage.getItem("userrMessages");
+      const userMessages = localStorage.getItem(`userMessages_${project.id}`);
+      console.log("FRONTEND", project, userMessages, feedback);
       const response = await fetch("/api/getFeedback", {
         method: "POST",
         headers: {
@@ -306,7 +309,7 @@ const FeedBack: React.FC = () => {
       // New Page for CV Description
       pdfDoc.addPage();
       pdfDoc.setFontSize(20);
-      pdfDoc.text("Project Description for CV(Example):", 20, 10);
+      pdfDoc.text("Project Description for CV:", 20, 10);
 
       pdfDoc.setFontSize(12);
       pdfDoc.text(feedbackText, 20, 20, { maxWidth: 170 });
@@ -318,7 +321,7 @@ const FeedBack: React.FC = () => {
       toast.error("Error generating PDF: " + error.message);
     } finally {
       setPdfLoading(false); // Set PDF loading state to false
-      localStorage.removeItem("userMessages");
+      localStorage.removeItem(`userMessages_${project.id}`);
     }
   };
 
@@ -424,11 +427,15 @@ const FeedBack: React.FC = () => {
             </button>
             <div
               className="tooltip"
-              data-tip="Here you can generate feedback in pdf format, and project description for CV."
+              data-tip={
+                totalGrade < 70
+                  ? "You should receive more than 70 percent to view feedback in pdf format and recieve project description for CV"
+                  : "Here you can generate feedback in pdf format, and project description for CV."
+              }
             >
               <button
                 onClick={generatePDF}
-                disabled={pdfLoading}
+                disabled={pdfLoading || totalGrade < 70}
                 className="bg-orange-500 text-white p-3 text-sm w-full rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
               >
                 {pdfLoading ? "PDF is generating..." : "Generate detailed PDF"}

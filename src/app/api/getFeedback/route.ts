@@ -9,13 +9,14 @@ export async function POST(request: any) {
   try {
     const body = await request.json();
     const { message, project, feedback } = body;
+    console.log("PROJECT FEEDBACK +++===++++++++", project, feedback, message);
 
     const systemPrompt = `
 You are a professional HR advisor creating a descriptive text for a project to show it in CV or resume. Provide structured answer for showcasing my achievements of the project.
 
 can you write this but yourself with project data, and history chat with mentor i provided.
 
-THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PROVIDED IN BODY(THIS IS EXAMPLE):
+THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PROVIDED IN BODY. Below just an example:
 - Name of the project: ${project.name}
 - Technical Assignment: ${project.technical_assignment}
 - Description:
