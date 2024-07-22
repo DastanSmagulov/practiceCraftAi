@@ -146,40 +146,10 @@ const ProjectsTable = () => {
     setLoading(true);
     const { uid } = user;
 
-    // Axios instance with custom settings
-    const axiosInstance = axios.create({
-      timeout: 5000, // Reduced timeout to 5 seconds
-    });
-
-    // Axios interceptor for retry logic
-    axiosInstance.interceptors.response.use(null, (error) => {
-      const config = error.config;
-      if (!config || !config.retryCount) return Promise.reject(error);
-
-      config.retryCount -= 1;
-
-      if (config.retryCount <= 0) {
-        return Promise.reject(error);
-      }
-
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(axiosInstance(config));
-        }, config.retryDelay || 1000);
-      });
-    });
-
-    // Initial request configuration
-    const requestConfig = {
-      url: `/api/createProject?userId=${uid}`,
-      method: "post",
-      data: { formData },
-      retryCount: 2, // Reduced number of retries
-      retryDelay: 500, // Reduced delay between retries
-    };
-
     try {
-      const response = await axiosInstance(requestConfig);
+      const response = await axios.post(`/api/createProject?userId=${uid}`, {
+        formData,
+      });
       const { newProjectId } = response.data;
       if (newProjectId) {
         router.push(`/project/${newProjectId}`);

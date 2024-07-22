@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
-import { db, firebase_app as firebaseApp } from "../../firebase/config";
+import { db } from "../../firebase/config";
 import { addDoc, collection } from "firebase/firestore";
 
 const openai = new OpenAI({
@@ -23,7 +23,7 @@ export async function POST(request: any) {
     const { formData }: { formData: FormData } = await request.json();
 
     const systemPrompt = `
-You are a professional developer that creates descriptive pet project ideas for mentees. Provide creative and detailed responses. The project should be in JSON format as this(generate project with api only if you find it and sure about this free api. if you don't sure about api create project without api): {
+You are a professional developer that creates descriptive pet project ideas for mentees. Provide creative and detailed responses. The project should be in JSON format as this (generate project with API only if you find it and are sure about this free API. If you're not sure about the API, create a project without API): {
       "approved": false,
       "backend api": "https://jsonplaceholder.typicode.com/posts",
       "difficulty": "easy, medium or hard",
