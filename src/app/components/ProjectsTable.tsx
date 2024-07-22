@@ -265,12 +265,12 @@ const ProjectsTable = () => {
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button
+          {/* <button
             className="bg-orange-500 text-white p-3 rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
             onClick={() => setShowModal(true)}
           >
             Create Project
-          </button>
+          </button> */}
         </div>
       </div>
       <div className="overflow-x-auto">
