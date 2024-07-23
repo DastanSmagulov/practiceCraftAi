@@ -9,16 +9,21 @@ export async function POST(request: any) {
   try {
     const body = await request.json();
     const { message, project, feedback } = body;
-    console.log("PROJECT FEEDBACK +++===++++++++", project, feedback, message);
+
+    console.log(project, feedback, message);
 
     const systemPrompt = `
-You are a professional HR advisor creating a descriptive text for a project to show it in CV or resume. Provide structured answer for showcasing my achievements of the project.
+    You are a professional HR advisor creating a descriptive text for a project to show it in CV or resume. Provide structured answer for showcasing my achievements of the project.
 
-can you write this but yourself with project data, and history chat with mentor i provided.
+    Provide text according to this JSONs:
+    UserMessages: ${message}
+This is the messages that user wrote to mentor, so you can generate difiiculties by this messages
+Project: ${project}
+Feedback: ${feedback}
 
-THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PROVIDED IN BODY. Below just an example:
+THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PROVIDED to you in the first lines. Below just an example:
 - Name of the project: ${project.name}
-- Technical Assignment: ${project.technical_assignment}
+- Technical Assignment: ${project["technical assignment"]}
 - Description:
   Developed a comprehensive fitness tracker application, enabling users to log activities and monitor progress through detailed data visualizations.
   Structured the project with a responsive layout, incorporating a polished header and footer to enhance user experience.
@@ -28,15 +33,10 @@ THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PRO
   Implemented secure user authentication with Firebase, allowing users to save and retrieve their activity data reliably.
   Created a comprehensive dashboard displaying overall fitness progress, facilitating easy tracking of user goals and achievements.
 - Difficulties Faced: example of difficulties
-
-UserMessages: ${message}
-This is the messages that user wrote to mentor, so you can generate difiiculties by this messages
-Project: ${project}
-Feedback: ${feedback}
 `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",

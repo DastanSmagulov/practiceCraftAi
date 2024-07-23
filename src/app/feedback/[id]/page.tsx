@@ -82,7 +82,6 @@ const FeedBack: React.FC = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         setIndexingLoading(false);
       })
       .catch((error) => {
@@ -116,7 +115,7 @@ const FeedBack: React.FC = () => {
         {
           "feedback": [
             {
-              "feedback_by_criteria": "Descriptive feedback about the project, code, and technologies.",
+              "general_information": "There should be descriptive feedback about the project, code, and technologies. Not this words, but actual feedback",
               "grade": {
                 "bronze": {
                   "grade": "Grade for bronze level",
@@ -228,7 +227,6 @@ const FeedBack: React.FC = () => {
 
     try {
       const userMessages = localStorage.getItem(`userMessages_${project.id}`);
-      console.log("FRONTEND", project, userMessages, feedback);
       const response = await fetch("/api/getFeedback", {
         method: "POST",
         headers: {
@@ -264,7 +262,7 @@ const FeedBack: React.FC = () => {
       feedback.forEach((item: any, index: number) => {
         // Criteria
         pdfDoc.setFont("helvetica", "bold");
-        const criteriaText = `${index + 1}. ${item.feedback_by_criteria}`;
+        const criteriaText = `${index + 1}. ${item.general_information}`;
         const splitCriteriaText = pdfDoc.splitTextToSize(
           criteriaText,
           maxWidth
@@ -352,7 +350,7 @@ const FeedBack: React.FC = () => {
               <h2 className="text-xl font-semibold mb-2 text-gray-800">
                 Feedback
               </h2>
-              <p className="mb-4 text-gray-700">{item.feedback_by_criteria}</p>
+              <p className="mb-4 text-gray-700">{item.general_information}</p>
               <h2 className="text-xl font-semibold mb-2 text-gray-800">
                 Grade
               </h2>

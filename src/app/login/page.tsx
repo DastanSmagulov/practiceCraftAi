@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth, provider } from "../firebase/config";
+import { auth, provider, db } from "../firebase/config";
 import {
   signInWithPopup,
   GithubAuthProvider,
@@ -9,6 +9,7 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function Login() {
   const [user, setUser] = useState<any>(null);
@@ -25,7 +26,7 @@ function Login() {
   }, [router]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const userData = {
           uid: currentUser.uid,
@@ -35,6 +36,7 @@ function Login() {
         };
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        await checkAndCreateUser(userData);
         router.push("/projects");
       } else {
         setUser(null);
@@ -45,28 +47,41 @@ function Login() {
     return () => unsubscribe();
   }, [router]);
 
+  const checkAndCreateUser = async (userData: any) => {
+    const userRef = doc(db, "users", userData.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        uid: userData.uid,
+        displayName: userData.displayName,
+        email: userData.email,
+        photoURL: userData.photoURL,
+      });
+    }
+  };
+
   const handleGithubLogin = async () => {
     setLoading(true);
-    await signInWithPopup(auth, provider)
-      .then((result) => {
-        const userData = {
-          uid: result.user.uid,
-          displayName: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-        };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-        router.push("/projects");
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error("Error during GitHub login:", err);
-        alert(
-          "Failed to log in with GitHub. Please try again. Error: " +
-            err.message
-        );
-      });
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const userData = {
+        uid: result.user.uid,
+        displayName: result.user.displayName,
+        email: result.user.email,
+        photoURL: result.user.photoURL,
+      };
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+      await checkAndCreateUser(userData);
+      router.push("/projects");
+    } catch (err: any) {
+      setLoading(false);
+      console.error("Error during GitHub login:", err);
+      alert(
+        "Failed to log in with GitHub. Please try again. Error: " + err.message
+      );
+    }
   };
 
   const handleSignOut = () => {

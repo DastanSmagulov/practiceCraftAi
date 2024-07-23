@@ -56,8 +56,8 @@ User Response:
 Generate a project:
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
+    const openAIResponse = await openai.chat.completions.create({
+      model: "gpt-3.5",
       messages: [
         {
           role: "system",
@@ -71,13 +71,12 @@ Generate a project:
     });
 
     if (
-      response.choices &&
-      response.choices.length > 0 &&
-      response.choices[0].message &&
-      response.choices[0].message.content
+      openAIResponse.choices &&
+      openAIResponse.choices.length > 0 &&
+      openAIResponse.choices[0].message &&
+      openAIResponse.choices[0].message.content
     ) {
-      const responseContent = response.choices[0].message.content.trim();
-      console.log("Response content:", responseContent);
+      const responseContent = openAIResponse.choices[0].message.content.trim();
 
       let project;
       try {
@@ -88,33 +87,12 @@ Generate a project:
         throw new Error("Invalid JSON format in OpenAI response");
       }
 
-      console.log("Project to be added to Firestore:", project);
+      const docRef = await addDoc(collection(db, `projects/users/${userId}`), {
+        ...project,
+        done: false,
+      });
 
-      try {
-        const docRef = await addDoc(
-          collection(db, `projects/users/${userId}`),
-          {
-            ...project,
-            done: false,
-          }
-        );
-
-        console.log(
-          "Project successfully written to Firestore with ID:",
-          docRef.id
-        );
-
-        return NextResponse.json({ newProjectId: docRef.id }, { status: 200 });
-      } catch (databaseError: any) {
-        console.error(
-          "Failed to add document to Firestore:",
-          databaseError.message
-        );
-        return NextResponse.json(
-          { error: "Failed to add document to Firestore" },
-          { status: 500 }
-        );
-      }
+      return NextResponse.json({ newProjectId: docRef.id }, { status: 200 });
     } else {
       throw new Error("Invalid response from OpenAI");
     }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // Replace with your actual API key
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 export async function POST(request: any) {
@@ -10,9 +10,9 @@ export async function POST(request: any) {
     const { message, project } = await request.json();
 
     const systemPrompt = `
-You are a professional senior frontend mentor. Provide creative and detailed responses not giving direct answers, just send useful links and give direction in a structured answer. Do not give solutions or step-by-step answers until your mentee writes to you more than five messages on the same topic.
+You are a professional senior frontend mentor. Provide creative and detailed responses without giving direct answers. Only give solutions after five messages on the same topic.
 
-Project Context:
+Project Details:
 - Name: ${project.name}
 - Difficulty: ${project.difficulty}
 - Topics: ${project.topics}
@@ -26,7 +26,7 @@ Mentor:
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5",
       messages: [
         {
           role: "system",
