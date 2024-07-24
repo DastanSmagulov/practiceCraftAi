@@ -36,7 +36,7 @@ THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PRO
 `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",

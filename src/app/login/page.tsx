@@ -78,9 +78,18 @@ function Login() {
     } catch (err: any) {
       setLoading(false);
       console.error("Error during GitHub login:", err);
-      alert(
-        "Failed to log in with GitHub. Please try again. Error: " + err.message
-      );
+      if (err.code === "auth/popup-blocked") {
+        alert(
+          "Popup blocked by the browser. Please reload the page or allow popups in browser settings."
+        );
+      } else if (err.code === "auth/popup-closed-by-user") {
+        alert("Popup closed by the user. Please reload the page.");
+      } else {
+        alert(
+          "Failed to log in with GitHub. Please try again. Error: " +
+            err.message
+        );
+      }
     }
   };
 
@@ -108,10 +117,7 @@ function Login() {
   };
 
   return (
-    <div
-      className="wrapper flex items-center justify-center h-screen bg-cover bg-center"
-      style={{ backgroundImage: "url('/path/to/your/background.jpg')" }}
-    >
+    <div className="wrapper flex items-center justify-center h-screen bg-cover bg-center">
       <div className="box text-center bg-white p-10 rounded-lg shadow-lg max-w-sm">
         {user ? (
           <>
