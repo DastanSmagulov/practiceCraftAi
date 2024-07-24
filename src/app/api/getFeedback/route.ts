@@ -44,7 +44,7 @@ THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMSAT BY DATA THAT WAS PRO
         },
         {
           role: "user",
-          content: message,
+          content: "",
         },
       ],
     });
