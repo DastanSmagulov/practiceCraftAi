@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 md:space-x-6 text-center">
             <Link
-              href="https://discord.gg/9GPQEDht"
+              href="https://discord.gg/H2pGWa6d6C"
               className="flex items-center text-sm font-medium hover:text-slate-300"
               target="_blank"
               rel="noopener noreferrer"

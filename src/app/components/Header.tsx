@@ -83,7 +83,7 @@ const Header: React.FC<{ active: string }> = (props) => {
               </li>
               <li>
                 <Link
-                  href={"https://discord.gg/9GPQEDht"}
+                  href={"https://discord.gg/H2pGWa6d6C"}
                   className={`${props.active === "discuss" ? "underline" : ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -143,7 +143,7 @@ const Header: React.FC<{ active: string }> = (props) => {
           </li>
           <li>
             <Link
-              href={"https://discord.gg/9GPQEDht"}
+              href={"https://discord.gg/H2pGWa6d6C"}
               className={`text-base font-bold ${
                 props.active === "discuss" ? "underline" : ""
               }`}
