@@ -25,10 +25,13 @@ interface Project {
 
 const ProjectsTable = () => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [originalProjects, setOriginalProjects] = useState<Project[]>([]); // State for original order
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [sortDifficulty, setSortDifficulty] = useState<string | null>(null);
   const [sortStatus, setSortStatus] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc"); // Sort order state
+  const [sortField, setSortField] = useState<string | null>(null); // Sort field state
   const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
 
@@ -78,6 +81,7 @@ const ProjectsTable = () => {
         }
 
         setProjects(projectsArray);
+        setOriginalProjects(projectsArray); // Set original order
         setFilteredProjects(projectsArray); // Initially set filtered projects to all projects
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -87,7 +91,7 @@ const ProjectsTable = () => {
     };
 
     if (user) {
-      fetchProjects(user.uid); // Fetch projects when user data is available
+      fetchProjects(user.uid);
     }
   }, [user]);
 
@@ -128,9 +132,47 @@ const ProjectsTable = () => {
         );
       }
 
+      if (sortField) {
+        if (sortField === "difficulty") {
+          results.sort((a, b) => {
+            const order = sortOrder === "asc" ? 1 : -1;
+            const difficultyOrder = ["easy", "medium", "hard"];
+            return (
+              (difficultyOrder.indexOf(a.difficulty) -
+                difficultyOrder.indexOf(b.difficulty)) *
+              order
+            );
+          });
+        } else {
+          results.sort((a, b) => {
+            const fieldA = (a as any)[sortField].toLowerCase();
+            const fieldB = (b as any)[sortField].toLowerCase();
+
+            if (fieldA < fieldB) return sortOrder === "asc" ? -1 : 1;
+            if (fieldA > fieldB) return sortOrder === "asc" ? 1 : -1;
+            return 0;
+          });
+        }
+      }
+
       setFilteredProjects(results);
     }
-  }, [searchTerm, projects, sortDifficulty, sortStatus]);
+  }, [searchTerm, projects, sortDifficulty, sortStatus, sortField, sortOrder]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      if (sortOrder === "asc") {
+        setSortOrder("desc");
+      } else if (sortOrder === "desc") {
+        setSortOrder("asc");
+        setSortField(null);
+        setFilteredProjects(originalProjects);
+      }
+    } else {
+      setSortOrder("asc");
+      setSortField(field);
+    }
+  };
 
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -170,6 +212,10 @@ const ProjectsTable = () => {
       </div>
     );
   }
+
+  const handleRowClick = (projectId: number) => {
+    router.push(`/project/${projectId}`);
+  };
 
   return (
     <div className="overflow-x-auto w-[80vw] min-h-[90vh] h-auto mx-auto mb-20">
@@ -257,7 +303,7 @@ const ProjectsTable = () => {
             </ul>
           </details>
         </div>
-        <div className="flex max-md:flex-col max-md:gap-3 space-x-2 md:items-center">
+        <div className="flex max-md:flex-col max-md:gap-3 md:space-x-2 md:items-center">
           <input
             type="text"
             placeholder="Search by name, stack or topic..."
@@ -278,14 +324,28 @@ const ProjectsTable = () => {
           <thead>
             <tr className="bg-gray-800 text-white">
               <th className="py-2 px-4">Status</th>
-              <th className="py-2 px-4">Title</th>
-              <th className="py-2 px-4">Difficulty</th>
+              <th
+                className="py-2 px-4 cursor-pointer"
+                onClick={() => handleSort("name")}
+              >
+                Title
+              </th>
+              <th
+                className="py-2 px-4 cursor-pointer"
+                onClick={() => handleSort("difficulty")}
+              >
+                Difficulty
+              </th>
               <th className="py-2 px-4">Topic</th>
             </tr>
           </thead>
           <tbody>
             {filteredProjects.map((project, index) => (
-              <tr key={index} className="hover:bg-gray-700">
+              <tr
+                key={index}
+                className="hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleRowClick(project.id)}
+              >
                 <td className="py-2 px-4">
                   <span
                     className={`text-${project.done ? "green" : "red"}-500`}
@@ -293,9 +353,7 @@ const ProjectsTable = () => {
                     {project.done ? "✔" : "✘"}
                   </span>
                 </td>
-                <td className="py-2 px-4">
-                  <Link href={`/project/${project.id}`}>{project.name}</Link>
-                </td>
+                <td className="py-2 px-4">{project.name}</td>
                 <td
                   className={`py-2 px-4 ${
                     project.difficulty === "easy"

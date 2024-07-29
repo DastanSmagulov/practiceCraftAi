@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { faCircle } from "@fortawesome/free-regular-svg-icons";
 import React, { useState, useEffect } from "react";
+import Link from "next/link"; // Import Link from Next.js
 
 interface ProjectDescriptionProps {
   project: {
@@ -18,6 +19,7 @@ interface ProjectDescriptionProps {
     };
     stack: string;
     tasks: string[];
+    id: number;
   } | null; // Ensure project can be null
 }
 
@@ -26,17 +28,19 @@ const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
 }: any) => {
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(
     () => {
-      const saved = localStorage.getItem(`checkedItems_${project.id}`);
+      const saved = localStorage.getItem(`checkedItems_${project?.id}`);
       return saved ? JSON.parse(saved) : {};
     }
   );
 
   useEffect(() => {
-    localStorage.setItem(
-      `checkedItems_${project.id}`,
-      JSON.stringify(checkedItems)
-    );
-  }, [checkedItems]);
+    if (project) {
+      localStorage.setItem(
+        `checkedItems_${project.id}`,
+        JSON.stringify(checkedItems)
+      );
+    }
+  }, [checkedItems, project]);
 
   const handleCheck = (item: string) => {
     setCheckedItems((prevState) => ({

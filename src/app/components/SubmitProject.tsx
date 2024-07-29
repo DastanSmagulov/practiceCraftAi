@@ -12,7 +12,6 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
   const [githubToken, setGithubToken] = useState<string>("");
 
   useEffect(() => {
-    // Retrieve stored values from localStorage when the component mounts
     const storedGithubToken = localStorage.getItem("githubToken");
     if (storedGithubToken) {
       setGithubToken(storedGithubToken);

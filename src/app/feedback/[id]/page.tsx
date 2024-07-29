@@ -416,7 +416,7 @@ const FeedBack: React.FC = () => {
               </div>
             </div>
           ))}
-          <div className="flex justify-between max-md:flex-col">
+          <div className="flex justify-between max-md:flex-col mb-5">
             <button
               onClick={() => router.push("/projects")}
               className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-4"
