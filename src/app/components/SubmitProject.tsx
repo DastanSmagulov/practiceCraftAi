@@ -29,6 +29,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
   const handleSubmit = () => {
     if (user) {
       localStorage.setItem("project", JSON.stringify(project));
+      localStorage.setItem("projectId", id);
       localStorage.setItem("githubLink", githubLink);
       localStorage.setItem("githubToken", githubToken); // Save the PAT to localStorage
       router.push(`/feedback/${id}`);

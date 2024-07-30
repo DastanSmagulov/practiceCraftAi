@@ -77,7 +77,7 @@ const Project: React.FC<ProjectProps> = ({ params: { id } }) => {
         <ProjectDescription project={project} />
       </div>
       <div className="lg:col-span-1">
-        <MentorChat project={project} />
+        <MentorChat project={project} id={id} />
         <SubmitProject project={project} id={id} />
       </div>
     </div>

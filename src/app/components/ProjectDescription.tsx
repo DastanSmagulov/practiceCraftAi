@@ -19,8 +19,8 @@ interface ProjectDescriptionProps {
     };
     stack: string;
     tasks: string[];
-    id: number;
-  } | null; // Ensure project can be null
+    id: string;
+  } | null;
 }
 
 const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
@@ -62,7 +62,7 @@ const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
       <h1 className="text-3xl md:text-4xl font-bold mb-6">{project.name}</h1>
       <div className="flex flex-wrap items-center mb-6">
         <span
-          className={`py-2 px-4 rounded-full text-sm font-semibold mr-2 ${
+          className={`py-2 px-4 rounded-full text-sm font-semibold mr-2 max-[340px]:mb-4 ${
             project.difficulty === "easy"
               ? "bg-green-500"
               : project.difficulty === "medium"

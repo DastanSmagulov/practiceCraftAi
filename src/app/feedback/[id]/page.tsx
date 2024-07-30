@@ -37,10 +37,14 @@ const FeedBack: React.FC = () => {
 
         const storedProject = localStorage.getItem("project");
         const storedGithubLink = localStorage.getItem("githubLink");
+        const storedProjectId = localStorage.getItem("projectId");
 
         if (storedProject) {
           setProject(JSON.parse(storedProject));
-          setProjectId(JSON.parse(storedProject).id);
+        }
+
+        if (storedProjectId) {
+          setProjectId(storedProjectId);
         }
 
         if (storedGithubLink) {
@@ -62,33 +66,65 @@ const FeedBack: React.FC = () => {
     return null;
   };
 
-  const repository = extractRepoDetails(githubLink);
+  const repository = extractRepoDetails(githubLink) || "";
 
   const repositoryPayload = {
     remote: "github",
     repository,
   };
 
-  const indexing = () => {
-    setIndexingLoading(true);
-    fetch("https://api.greptile.com/v2/repositories", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${greptileApiKey}`,
-        "X-Github-Token": githubToken,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(repositoryPayload),
-    })
-      .then((response) => response.json())
-      .then((data) => {
+  const indexing = async () => {
+    const githubRepoRegex = /^[\w-]+\/[\w-]+$/;
+    const githubPatRegex = /^github_pat_[0-9a-zA-Z_]{22,}$/;
+
+    // Check if repository URL and GitHub token are valid
+    if (!repository) {
+      toast.error(
+        "Invalid GitHub repository URL. Please use the correct format."
+      );
+      // router.push(`/project/${projectId}`);
+      return;
+    }
+
+    if (!githubPatRegex.test(githubToken)) {
+      toast.error("Invalid GitHub Personal Access Token format.");
+      // router.push(`/project/${projectId}`);
+      return;
+    }
+
+    if (githubPatRegex.test(githubToken) && repository) {
+      setIndexingLoading(true);
+      try {
+        const response = await fetch(
+          "https://api.greptile.com/v2/repositories",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${greptileApiKey}`,
+              "X-Github-Token": githubToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(repositoryPayload),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            `API Error: ${response.status} - ${
+              errorData.message || response.statusText
+            }`
+          );
+        }
+
         setIndexingLoading(false);
-      })
-      .catch((error) => {
+        toast.success("Indexing completed successfully.");
+      } catch (error: any) {
         console.error("Error:", error);
         toast.error("Error during indexing: " + error.message);
         setIndexingLoading(false);
-      });
+      }
+    }
   };
 
   useEffect(() => {
@@ -170,45 +206,56 @@ const FeedBack: React.FC = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          return response.json().then((error) => {
+            throw new Error(
+              `API Error: ${response.status} - ${
+                error.message || response.statusText
+              }`
+            );
+          });
         }
         return response.json();
       })
       .then(async (data) => {
-        const feedbackString = data.message.match(
-          /```json\n([\s\S]*?)\n```/
-        )[1];
-        const feedbackJson = JSON.parse(feedbackString);
+        try {
+          const feedbackString = data.message.match(
+            /```json\n([\s\S]*?)\n```/
+          )[1];
+          const feedbackJson = JSON.parse(feedbackString);
 
-        setFeedback(feedbackJson.feedback);
-        setFeedbackReceived(true);
+          setFeedback(feedbackJson.feedback);
+          setFeedbackReceived(true);
 
-        const overallGradeString =
-          feedbackJson.feedback[0]?.grade?.overall?.grade + "";
-        if (overallGradeString) {
-          let numericGradeString = overallGradeString.trim();
-          if (numericGradeString.endsWith("%")) {
-            numericGradeString = numericGradeString.slice(0, -1);
-          }
-          const numericGrade = parseFloat(numericGradeString);
+          const overallGradeString =
+            feedbackJson.feedback[0]?.grade?.overall?.grade + "";
+          if (overallGradeString) {
+            let numericGradeString = overallGradeString.trim();
+            if (numericGradeString.endsWith("%")) {
+              numericGradeString = numericGradeString.slice(0, -1);
+            }
+            const numericGrade = parseFloat(numericGradeString);
 
-          if (!isNaN(numericGrade) && numericGrade > 70) {
-            const projectRef = doc(db, `projects/users/${uid}/${projectId}`);
-            await updateDoc(projectRef, {
-              done: true,
-            });
-            toast.success("Project submitted and marked as done!");
+            if (!isNaN(numericGrade) && numericGrade > 70) {
+              const projectRef = doc(db, `projects/users/${uid}/${projectId}`);
+              await updateDoc(projectRef, {
+                done: true,
+              });
+              toast.success("Project submitted and marked as done!");
+            } else {
+              toast.info(
+                "Project submitted but not marked as done due to low grade."
+              );
+            }
+            setTotalGrade(numericGrade);
           } else {
-            toast.info(
-              "Project submitted but not marked as done due to low grade."
-            );
+            throw new Error("Invalid overall grade format received.");
           }
-          setTotalGrade(numericGrade);
-        } else {
-          throw new Error("Invalid overall grade format received.");
+        } catch (error: any) {
+          console.error("Error parsing feedback data:", error);
+          toast.error("Error processing feedback data: " + error.message);
         }
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("Error submitting query:", error);
         toast.error("Error submitting query: " + error.message);
       })
@@ -226,7 +273,7 @@ const FeedBack: React.FC = () => {
     setPdfLoading(true);
 
     try {
-      const userMessages = localStorage.getItem(`userMessages_${project.id}`);
+      const userMessages = localStorage.getItem(`userMessages_${projectId}`);
       const response = await fetch("/api/getFeedback", {
         method: "POST",
         headers: {
@@ -246,7 +293,7 @@ const FeedBack: React.FC = () => {
       const responseData = await response.json();
       const feedbackText = responseData.response;
 
-      const pdfDoc = new jsPDF(); // Rename 'doc' to 'pdfDoc'
+      const pdfDoc = new jsPDF();
       const title = project.name || "Project Feedback";
       pdfDoc.setFontSize(20);
       pdfDoc.text(title, 20, 10);

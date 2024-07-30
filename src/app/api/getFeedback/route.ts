@@ -10,11 +10,6 @@ export async function POST(request: any) {
     const body = await request.json();
     const { message, project, feedback } = body;
 
-    // Debugging output
-    console.log("Project:", project);
-    console.log("Feedback:", feedback);
-    console.log("Message:", message);
-
     // Construct the system prompt with the provided data
     const systemPrompt = `
       You are a professional HR advisor creating a descriptive text for a project to show it in CV or resume. Provide structured answer for showcasing my achievements of the project according to this data:
@@ -28,7 +23,7 @@ export async function POST(request: any) {
       Feedback (Provide text according to this feedback): 
       ${JSON.stringify(feedback, null, 2)}
 
-      THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMAT BY DATA THAT WAS PROVIDED TO YOU IN THE FIRST LINES. Below is just an example:
+      THIS IS IMPORTANT, YOU SHOULD SEND RESPONSE IN THIS FORMAT BY DATA THAT WAS PROVIDED TO YOU IN THE FIRST LINES. Don't add unnesseasy information. Below is just an example:
 
       - Name of the project: ${project.name}
       - Technical Assignment: ${project["technical assignment"]}

@@ -43,7 +43,7 @@ You are a professional developer that creates descriptive pet project ideas for 
         "Add meta headers for SEO"
       ],
       "technical assignment": "Build a blog application that displays posts from a JSON file. Include dynamic routing and SEO meta headers.",
-      "topics": "Routing, SEO, API Integration"
+      "topics": "Routing, SEO, API Integration",
     }; and create it according to user response.
 
 User Response:

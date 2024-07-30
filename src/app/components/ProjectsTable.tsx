@@ -249,7 +249,7 @@ const ProjectsTable = () => {
             onSelect={setSortStatus}
           />
         </div>
-        <div className="flex max-md:flex-col max-md:gap-3 md:space-x-2 md:items-center">
+        <div className="flex max-[770px]:flex-col max-[770px]:gap-3 md:space-x-2 md:items-center">
           <input
             type="text"
             placeholder="  🔍  Search projects"

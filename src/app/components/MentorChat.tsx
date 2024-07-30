@@ -6,14 +6,17 @@ type Message = {
   sender: "user" | "mentor";
 };
 
-const MentorChat: React.FC<{ project: any }> = ({ project }) => {
+const MentorChat: React.FC<{ project: any; id: string }> = ({
+  project,
+  id,
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentMentorMessage, setCurrentMentorMessage] = useState<string>("");
   const [messageQueue, setMessageQueue] = useState<string>("");
 
-  const projectId = project.id;
+  const projectId = id;
 
   // Load messages from local storage on component mount
   useEffect(() => {
