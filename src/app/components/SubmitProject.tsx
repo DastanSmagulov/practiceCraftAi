@@ -50,7 +50,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
         <input
           type="text"
           className="flex-1 p-3 bg-gray-700 focus:outline-none rounded-md shadow-md text-gray-200 placeholder-gray-400"
-          placeholder="GitHub project link"
+          placeholder="Link to public github repo"
           value={githubLink}
           onChange={handleChange}
         />

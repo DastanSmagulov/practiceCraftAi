@@ -5,6 +5,7 @@ import axios from "axios";
 import { db } from "../firebase/config";
 import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import Dropdown from "./Dropdown";
 
 interface Project {
   name: string;
@@ -34,7 +35,6 @@ const ProjectsTable = () => {
   const [sortField, setSortField] = useState<string | null>(null); // Sort field state
   const [userLoaded, setUserLoaded] = useState(false); // Flag to track user data loaded
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
-
   const [formData, setFormData] = useState({
     knowledgeLevel: "",
     experience: "",
@@ -217,102 +217,49 @@ const ProjectsTable = () => {
     router.push(`/project/${projectId}`);
   };
 
+  const capitalizeFirstLetter = (text: String) => {
+    if (!text) return text; // Check if the input is empty or undefined
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
   return (
     <div className="overflow-x-auto w-[80vw] min-h-[90vh] h-auto mx-auto mb-20">
       <h1 className="mb-4 text-3xl font-bold">Pet projects library</h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-2 sm:space-y-0">
         <div className="flex space-x-2">
-          <details className="dropdown">
-            <summary className="btn m-1">Difficulty</summary>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-24 p-2 shadow">
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortDifficulty === "easy" ? "active" : ""
-                  }`}
-                  onClick={() => setSortDifficulty("easy")}
-                >
-                  Easy
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortDifficulty === "medium" ? "active" : ""
-                  }`}
-                  onClick={() => setSortDifficulty("medium")}
-                >
-                  Medium
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortDifficulty === "hard" ? "active" : ""
-                  }`}
-                  onClick={() => setSortDifficulty("hard")}
-                >
-                  Hard
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortDifficulty === "all" ? "active" : ""
-                  }`}
-                  onClick={() => setSortDifficulty("all")}
-                >
-                  All
-                </button>
-              </li>
-            </ul>
-          </details>
-          <details className="dropdown">
-            <summary className="btn m-1">Status</summary>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-24 p-2 shadow">
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortStatus === "done" ? "active" : ""
-                  }`}
-                  onClick={() => setSortStatus("done")}
-                >
-                  Done
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortStatus === "to-do" ? "active" : ""
-                  }`}
-                  onClick={() => setSortStatus("to-do")}
-                >
-                  To-do
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`menu-item ${
-                    sortStatus === "all" ? "active" : ""
-                  }`}
-                  onClick={() => setSortStatus("all")}
-                >
-                  All
-                </button>
-              </li>
-            </ul>
-          </details>
+          <Dropdown
+            buttonLabel="Difficulty"
+            options={[
+              { label: "Easy", value: "easy" },
+              { label: "Medium", value: "medium" },
+              { label: "Hard", value: "hard" },
+              { label: "All", value: "all" },
+            ]}
+            selectedValue={sortDifficulty}
+            onSelect={setSortDifficulty}
+          />
+          <Dropdown
+            buttonLabel="Status"
+            options={[
+              { label: "Done", value: "done" },
+              { label: "To-do", value: "to-do" },
+              { label: "All", value: "all" },
+            ]}
+            selectedValue={sortStatus}
+            onSelect={setSortStatus}
+          />
         </div>
         <div className="flex max-md:flex-col max-md:gap-3 md:space-x-2 md:items-center">
           <input
             type="text"
-            placeholder="Search by name, stack or topic..."
-            className="input input-bordered"
+            placeholder="  🔍  Search projects"
+            className="input input-bordered pl-3"
             value={searchTerm}
             onChange={handleSearch}
           />
+
           <button
-            className="bg-orange-500 text-white p-3 rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
+            className="bg-orange-500 md:px-6 text-white p-3 rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold"
             onClick={() => setShowModal(true)}
           >
             Create Project
@@ -363,7 +310,7 @@ const ProjectsTable = () => {
                       : "text-red-500"
                   }`}
                 >
-                  {project.difficulty}
+                  {capitalizeFirstLetter(project.difficulty)}
                 </td>
                 <td className="py-2 px-4">{project.topics}</td>
               </tr>

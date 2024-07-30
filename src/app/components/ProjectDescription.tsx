@@ -59,10 +59,10 @@ const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
 
   return (
     <div className="container w-full md:w-[80%] py-8">
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.name}</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-6">{project.name}</h1>
       <div className="flex flex-wrap items-center mb-6">
         <span
-          className={`py-1 px-3 rounded-full text-sm font-semibold mr-2 mb-2 ${
+          className={`py-2 px-4 rounded-full text-sm font-semibold mr-2 ${
             project.difficulty === "easy"
               ? "bg-green-500"
               : project.difficulty === "medium"
@@ -76,7 +76,7 @@ const ProjectDescription: React.FC<ProjectDescriptionProps> = ({
             : ""}
         </span>{" "}
         <div className="flex flex-wrap">
-          <span className="bg-gray-200 text-gray-800 py-2 px-4 rounded-full text-sm font-semibold mr-2 mb-2 overflow-ellipsis wrap">
+          <span className="bg-gray-200 text-gray-800 py-2 px-4 rounded-full text-sm font-semibold mr-2 overflow-ellipsis wrap">
             {project.topics}
           </span>
         </div>
