@@ -22,6 +22,7 @@ const FeedBack: React.FC = () => {
   const [projectId, setProjectId] = useState<string>("");
   const [pdfLoading, setPdfLoading] = useState<boolean>(false); // New state for PDF loading
   const [totalGrade, setTotalGrade] = useState<number>(0); // State for total grade
+  const [indexingDone, setIndexingDone] = useState<boolean>(false); // New state for PDF loading
 
   const router = useRouter();
 
@@ -82,22 +83,25 @@ const FeedBack: React.FC = () => {
       toast.error(
         "Invalid GitHub repository URL. Please use the correct format."
       );
-      // router.push(`/project/${projectId}`);
       return;
     }
 
     if (!githubPatRegex.test(githubToken)) {
       toast.error("Invalid GitHub Personal Access Token format.");
-      // router.push(`/project/${projectId}`);
       return;
     }
 
     if (githubPatRegex.test(githubToken) && repository) {
       setIndexingLoading(true);
+
+      const timeoutPromise = new Promise<never>(
+        (_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out")), 10000) // 10 seconds timeout
+      );
+
       try {
-        const response = await fetch(
-          "https://api.greptile.com/v2/repositories",
-          {
+        const response = (await Promise.race([
+          fetch("https://api.greptile.com/v2/repositories", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${greptileApiKey}`,
@@ -105,11 +109,17 @@ const FeedBack: React.FC = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(repositoryPayload),
-          }
-        );
+          }),
+          timeoutPromise,
+        ])) as Response;
 
         if (!response.ok) {
           const errorData = await response.json();
+
+          if (response.status === 401 || response.status === 404) {
+            throw new Error("Invalid or expired GitHub Personal Access Token.");
+          }
+
           throw new Error(
             `API Error: ${response.status} - ${
               errorData.message || response.statusText
@@ -118,10 +128,32 @@ const FeedBack: React.FC = () => {
         }
 
         setIndexingLoading(false);
+        setIndexingDone(true);
         toast.success("Indexing completed successfully.");
       } catch (error: any) {
+        setIndexingDone(false);
         console.error("Error:", error);
-        toast.error("Error during indexing: " + error.message);
+
+        if (
+          error.message.includes(
+            "Invalid or expired GitHub Personal Access Token"
+          )
+        ) {
+          toast.error(
+            "The GitHub Personal Access Token is invalid or expired. Please generate a new token and try again."
+          );
+        } else if (error.message === "Request timed out") {
+          toast.error(
+            "The request took too long and was timed out. This might indicate an expired token. Please check your token and try again."
+          );
+        } else {
+          toast.error(
+            "Error during indexing: " +
+              error.message +
+              ". Maybe problem is that your token has been expired."
+          );
+        }
+
         setIndexingLoading(false);
       }
     }
@@ -493,13 +525,22 @@ const FeedBack: React.FC = () => {
           <h2 className="text-2xl font-bold mb-2 text-center">
             Click to get your feedback
           </h2>
-          <button
-            onClick={submit}
-            disabled={loading}
-            className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-2"
+          <div
+            className="tooltip"
+            data-tip={
+              !indexingDone
+                ? "Indeixing is not finished yet"
+                : "you can generate feedback"
+            }
           >
-            Get Feedback
-          </button>
+            <button
+              onClick={submit}
+              disabled={loading || !indexingDone}
+              className="bg-orange-500 text-white p-3 text-sm rounded-md shadow-md hover:bg-orange-600 transition duration-300 font-bold mt-2"
+            >
+              Get Feedback
+            </button>
+          </div>
         </div>
       )}
     </div>

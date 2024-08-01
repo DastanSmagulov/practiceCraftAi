@@ -10,6 +10,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
   const router = useRouter();
   const [githubLink, setGithubLink] = useState<string>("");
   const [githubToken, setGithubToken] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const storedGithubToken = localStorage.getItem("githubToken");
@@ -26,23 +27,51 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
     setGithubToken(e.target.value);
   };
 
-  const handleSubmit = () => {
-    if (user) {
+  const isValidGitHubLink = (link: string) => {
+    return link.startsWith("https://github.com/");
+  };
+
+  const isValidGithubToken = (token: string) => {
+    return token.startsWith("github_pat");
+  };
+
+  const handleSubmit = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (!isValidGitHubLink(githubLink) && !isValidGithubToken(githubToken)) {
+      setError("Invalid GitHub link and Github personal access token");
+      return;
+    }
+
+    if (!isValidGitHubLink(githubLink)) {
+      setError("Invalid GitHub link provided.");
+      return;
+    }
+
+    if (!isValidGithubToken(githubToken)) {
+      setError("Invalid GitHub Personal Access Token.");
+      return;
+    }
+
+    try {
       localStorage.setItem("project", JSON.stringify(project));
       localStorage.setItem("projectId", id);
       localStorage.setItem("githubLink", githubLink);
-      localStorage.setItem("githubToken", githubToken); // Save the PAT to localStorage
+      localStorage.setItem("githubToken", githubToken);
       router.push(`/feedback/${id}`);
-    } else {
-      router.push("/login");
+    } catch (error: any) {
+      setError(error.message || "An error occurred.");
     }
   };
-
   return (
     <div className="flex flex-col items-center gap-3 p-8 bg-gray-900 text-white rounded-md shadow-md max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-2 text-center">
         Submit Your Project for Feedback
       </h2>
+      {error && <p className="text-red-500 text-center mb-3">{error}</p>}
       <p className="text-lg mb-3 text-center">
         Please provide your GitHub link and Personal Access Token (PAT) so our
         API can check your work and provide feedback.
