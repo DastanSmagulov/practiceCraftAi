@@ -39,7 +39,7 @@ export async function POST(request: any) {
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // Ensure this is the correct model name
+      model: "gpt-4o-mini", // Ensure this is the correct model name
       messages: [
         {
           role: "system",
