@@ -276,12 +276,26 @@ const ProjectsTable = () => {
                 onClick={() => handleSort("name")}
               >
                 Title
+                {sortField === "name" ? (
+                  <span className="text-xs">
+                    {sortOrder === "asc" ? " ↑" : " ↓"}
+                  </span>
+                ) : (
+                  <span className="text-xs"> ↑↓ </span>
+                )}
               </th>
               <th
                 className="py-2 px-4 cursor-pointer"
                 onClick={() => handleSort("difficulty")}
               >
                 Difficulty
+                {sortField === "difficulty" ? (
+                  <span className="text-xs">
+                    {sortOrder === "asc" ? " ↑" : " ↓"}
+                  </span>
+                ) : (
+                  <span className="text-xs"> ↑↓ </span>
+                )}
               </th>
               <th className="py-2 px-4">Topic</th>
             </tr>
@@ -302,7 +316,7 @@ const ProjectsTable = () => {
                 </td>
                 <td className="py-2 px-4">{project.name}</td>
                 <td
-                  className={`py-2 px-4 ${
+                  className={`py-2 pl-4 pr-16 ${
                     project.difficulty === "easy"
                       ? "text-green-500"
                       : project.difficulty === "medium"

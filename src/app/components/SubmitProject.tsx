@@ -76,7 +76,7 @@ const SubmitProject: React.FC<{ project: any; id: string }> = ({
         Please provide your GitHub link and Personal Access Token (PAT) so our
         API can check your work and provide feedback.
       </p>
-      <div className="flex flex-col xl:flex-row gap-2 w-full items-center">
+      <div className="flex flex-col 2xl:flex-row gap-2 w-full items-center">
         <input
           type="text"
           className="flex-1 p-3 bg-gray-700 focus:outline-none rounded-md shadow-md text-gray-200 placeholder-gray-400"
