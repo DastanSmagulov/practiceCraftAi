@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent, KeyboardEvent } from "react";
+import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from "react";
 import axios from "axios";
 
 type Message = {
@@ -15,6 +15,7 @@ const MentorChat: React.FC<{ project: any; id: string }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentMentorMessage, setCurrentMentorMessage] = useState<string>("");
   const [messageQueue, setMessageQueue] = useState<string>("");
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const projectId = id;
 
@@ -50,6 +51,13 @@ const MentorChat: React.FC<{ project: any; id: string }> = ({
 
     return () => clearInterval(interval);
   }, [messageQueue, currentMentorMessage, isLoading]);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages, currentMentorMessage]);
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -117,6 +125,7 @@ const MentorChat: React.FC<{ project: any; id: string }> = ({
     <div className="min-w-[40vw] py-8 mb-10 max-[350px]:mb-28 max-[350px]:mt-28 flex items-center max-sm:mb-16 justify-center text-white">
       <div className="w-full max-w-3xl bg-gray-900 rounded-lg shadow-lg p-4">
         <div
+          ref={chatContainerRef}
           className="flex flex-col h-96 overflow-y-auto mb-4 space-y-4"
           style={{ maxHeight: "calc(100% - 5rem)" }}
         >
