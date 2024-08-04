@@ -275,7 +275,7 @@ const ProjectsTable = () => {
                 className="py-2 px-4 cursor-pointer"
                 onClick={() => handleSort("name")}
               >
-                Title
+                <button className="border-none">Title</button>
                 {sortField === "name" ? (
                   <span className="text-xs">
                     {sortOrder === "asc" ? " ↑" : " ↓"}
@@ -288,7 +288,7 @@ const ProjectsTable = () => {
                 className="py-2 px-4 cursor-pointer"
                 onClick={() => handleSort("difficulty")}
               >
-                Difficulty
+                <button className="border-none">Difficulty</button>
                 {sortField === "difficulty" ? (
                   <span className="text-xs">
                     {sortOrder === "asc" ? " ↑" : " ↓"}
@@ -308,13 +308,20 @@ const ProjectsTable = () => {
                 onClick={() => handleRowClick(project.id)}
               >
                 <td className="py-2 px-4">
-                  <span
-                    className={`text-${project.done ? "green" : "red"}-500`}
+                  <button
+                    className={`bg-transparent border-none text-left text-${
+                      project.done ? "green" : "red"
+                    }-500`}
                   >
-                    {project.done ? "✔" : "✘"}
-                  </span>
+                    {project.done ? "✔" : "✘"}{" "}
+                  </button>
                 </td>
-                <td className="py-2 px-4">{project.name}</td>
+                <td className="py-2 px-4">
+                  {" "}
+                  <button className="bg-transparent border-none text-left">
+                    {project.name}
+                  </button>
+                </td>
                 <td
                   className={`py-2 pl-4 pr-16 ${
                     project.difficulty === "easy"
