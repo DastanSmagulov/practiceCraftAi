@@ -16,5 +16,16 @@ const config: Config = {
     },
   },
   plugins: [require("daisyui")],
+  daisyui: {
+    themes: [
+      {
+        mytheme: {
+          "base-100": "#1a1d22",
+          "base-200": "#22272d",
+          "base-300": "#1a1d22",
+        },
+      },
+    ],
+  },
 };
 export default config;

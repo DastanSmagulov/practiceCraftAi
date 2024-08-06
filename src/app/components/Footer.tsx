@@ -5,7 +5,7 @@ import { FaDiscord } from "react-icons/fa";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-base-300 min-h-[10vh] flex justify-center items-center text-xl py-6">
+    <footer className="bg-base-300 min-h-[10vh] flex justify-center items-center text-xl py-6 text-slate-300">
       <div className="container w-[80vw] m-auto">
         <div className="flex flex-col xl:flex-row items-center justify-between space-y-4 md:space-y-0">
           <p className="text-sm font-medium text-center md:text-left">

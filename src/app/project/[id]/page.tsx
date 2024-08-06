@@ -72,7 +72,7 @@ const Project: React.FC<ProjectProps> = ({ params: { id } }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-16 pb-10 px-4 md:px-24 min-h-screen">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-16 pb-10 px-4 md:px-24 min-h-screen bg-base-200">
       <div className="lg:col-span-1">
         <ProjectDescription project={project} />
       </div>

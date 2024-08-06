@@ -52,7 +52,7 @@ const Header: React.FC<{ active: string }> = (props) => {
   }, []);
 
   return (
-    <div className="drawer min-h-[10vh]">
+    <div className="drawer min-h-[10vh] text-slate-300">
       <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
@@ -81,7 +81,7 @@ const Header: React.FC<{ active: string }> = (props) => {
           <div>
             <Link
               href={"/projects"}
-              className="text-xl max-sm:text-base font-bold hover:text-slate-300"
+              className="text-xl max-sm:text-base font-bold hover:text-slate-400"
             >
               PracticeCraft.AI
             </Link>

@@ -34,7 +34,10 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button className="btn m-1" onClick={() => setIsOpen(!isOpen)}>
+      <button
+        className="btn m-1 bg-base-300 hover:bg-[#25292f] border-none"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         {buttonLabel}
       </button>
       {isOpen && (
