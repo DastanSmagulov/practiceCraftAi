@@ -4,16 +4,21 @@ import { useRouter } from "next/navigation";
 import { auth, provider, db } from "../firebase/config";
 import {
   signInWithPopup,
-  GithubAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function Login() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState({ type: "", text: "" });
   const router = useRouter();
 
   useEffect(() => {
@@ -28,16 +33,23 @@ function Login() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const userData = {
-          uid: currentUser.uid,
-          displayName: currentUser.displayName,
-          email: currentUser.email,
-          photoURL: currentUser.photoURL,
-        };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-        await checkAndCreateUser(userData);
-        router.push("/projects");
+        if (currentUser.emailVerified) {
+          const userData = {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            photoURL: currentUser.photoURL,
+          };
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+          await checkAndCreateUser(userData);
+          router.push("/projects");
+        } else {
+          setMessage({
+            type: "error",
+            text: "Please verify your email address.",
+          });
+        }
       } else {
         setUser(null);
         localStorage.removeItem("user");
@@ -58,11 +70,23 @@ function Login() {
         email: userData.email,
         photoURL: userData.photoURL,
       });
+    } else {
+      const existingUserData = userSnap.data();
+      if (!existingUserData.photoURL && userData.photoURL) {
+        await setDoc(
+          userRef,
+          {
+            photoURL: userData.photoURL,
+          },
+          { merge: true }
+        );
+      }
     }
   };
 
   const handleGithubLogin = async () => {
     setLoading(true);
+    setMessage({ type: "", text: "" });
     try {
       const result = await signInWithPopup(auth, provider);
       const userData = {
@@ -76,20 +100,70 @@ function Login() {
       await checkAndCreateUser(userData);
       router.push("/projects");
     } catch (err: any) {
-      setLoading(false);
       console.error("Error during GitHub login:", err);
-      if (err.code === "auth/popup-blocked") {
-        alert(
-          "Popup blocked by the browser. Please reload the page or allow popups in browser settings."
-        );
-      } else if (err.code === "auth/popup-closed-by-user") {
-        alert("Popup closed by the user. Please reload the page.");
+      setMessage({
+        type: "error",
+        text:
+          err.code === "auth/popup-blocked"
+            ? "Popup blocked by the browser. Please reload the page or allow popups in browser settings."
+            : err.code === "auth/popup-closed-by-user"
+            ? "Popup closed by the user. Please reload the page."
+            : "Failed to log in with GitHub. Please try again. Error: " +
+              err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignUp = async () => {
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+    try {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await sendEmailVerification(result.user);
+      setMessage({
+        type: "success",
+        text: "Verification email sent. Please check your inbox.",
+      });
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+      console.error("Error during sign-up:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignIn = async () => {
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      if (result.user.emailVerified) {
+        const userData = {
+          uid: result.user.uid,
+          displayName: result.user.displayName || "Anonymous",
+          email: result.user.email,
+        };
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+        await checkAndCreateUser(userData);
+        router.push("/projects");
       } else {
-        alert(
-          "Failed to log in with GitHub. Please try again. Error: " +
-            err.message
-        );
+        setMessage({
+          type: "error",
+          text: "Please verify your email address.",
+        });
       }
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+      console.error("Error during sign-in:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,14 +180,9 @@ function Login() {
         alert("Error signing out. Please try again.");
       });
 
-    // Clear persistent state
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        // Persistent state cleared
-      })
-      .catch((error) => {
-        console.error("Error clearing persistent state: ", error);
-      });
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error("Error clearing persistent state: ", error);
+    });
   };
 
   return (
@@ -149,7 +218,7 @@ function Login() {
               with us.
             </p>
             <button
-              className="flex items-center justify-center bg-orange-500 text-white px-6 py-3 text-lg rounded-full shadow-md hover:bg-blue-700 transition duration-300 font-bold w-full"
+              className="flex items-center justify-center bg-orange-500 text-white px-6 py-3 text-lg rounded-full shadow-md hover:bg-orange-600 transition duration-300 font-bold w-full mb-4"
               onClick={handleGithubLogin}
               disabled={loading}
             >
@@ -176,6 +245,45 @@ function Login() {
                 <>Sign In With GitHub</>
               )}
             </button>
+            <div className="mb-4">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 mb-4 border text-slate-600 border-gray-300 rounded-lg"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 mb-4 border text-slate-600 border-gray-300 rounded-lg"
+              />
+              <button
+                className="w-full bg-green-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-green-700 transition duration-300 font-bold mb-4"
+                onClick={handleEmailSignUp}
+                disabled={loading}
+              >
+                {loading ? "Signing Up..." : "Sign Up with Email"}
+              </button>
+              <button
+                className="w-full bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-700 transition duration-300 font-bold"
+                onClick={handleEmailSignIn}
+                disabled={loading}
+              >
+                {loading ? "Signing In..." : "Sign In with Email"}
+              </button>
+            </div>
+            {message.text && (
+              <p
+                className={`${
+                  message.type === "error" ? "text-red-500" : "text-green-500"
+                } mt-4`}
+              >
+                {message.text}
+              </p>
+            )}
           </>
         )}
       </div>

@@ -118,11 +118,18 @@ const Header: React.FC<{ active: string }> = (props) => {
                   onClick={handleDropdownToggle}
                 >
                   <h1 className="text-lg font-bold max-md:hidden">
-                    {user.displayName}
+                    {user.displayName == "Anonymous" ? "" : user.displayName}
                   </h1>
                   <button className="btn btn-ghost btn-circle avatar">
-                    <div className="w-12 rounded-full">
-                      <img alt="Profile" src={user.photoURL} />
+                    <div
+                      className={`${
+                        user.photoURL ? "w-12" : "w-9"
+                      } rounded-full`}
+                    >
+                      <img
+                        alt="Profile"
+                        src={user.photoURL ? user.photoURL : "/avatar.png"}
+                      />
                     </div>
                   </button>
                 </div>
